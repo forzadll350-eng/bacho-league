@@ -31,10 +31,18 @@ export function MatchDetailSheet() {
         <div className="detail-body">
           <div className="card detail-score">
             <small>{data.hero.league}</small>
-            <h3 className="sports-num">{data.hero.score}</h3>
-            <p>
-              {data.hero.home.nameTh} • {data.hero.state} • {data.hero.away.nameTh}
-            </p>
+            <div className="detail-teams">
+              <div className="detail-team">
+                <img src={data.hero.home.crestUrl} alt="" />
+                <b>{data.hero.home.nameTh}</b>
+              </div>
+              <h3 className="sports-num">{data.hero.score}</h3>
+              <div className="detail-team">
+                <img src={data.hero.away.crestUrl} alt="" />
+                <b>{data.hero.away.nameTh}</b>
+              </div>
+            </div>
+            <p>{data.hero.state}</p>
             {sport === 'volleyball' && data.hero.sets ? (
               <VolleyballSetScore sets={data.hero.sets} currentSet={4} />
             ) : null}
