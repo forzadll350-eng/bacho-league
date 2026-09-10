@@ -25,6 +25,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   const [awayScore, setAwayScore] = useState(0)
   const [liveClock, setLiveClock] = useState('')
   const [periodLabel, setPeriodLabel] = useState('')
+  const [liveStreamUrl, setLiveStreamUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -43,6 +44,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         setAwayScore(row.away_score)
         setLiveClock(row.live_clock ?? '')
         setPeriodLabel(row.period_label ?? '')
+        setLiveStreamUrl(row.live_stream_url ?? '')
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'โหลดแมตช์ไม่สำเร็จ')
@@ -66,6 +68,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         away_score: awayScore,
         live_clock: liveClock.trim() || null,
         period_label: periodLabel.trim() || null,
+        live_stream_url: liveStreamUrl.trim() || null,
         updated_at: new Date().toISOString(),
       })
       setToast('บันทึกแล้ว')
@@ -148,6 +151,19 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
             onChange={(e) => setPeriodLabel(e.target.value)}
             placeholder="เช่น ครึ่งหลัง · เซ็ต 2"
           />
+        </div>
+      </div>
+
+      <div className="editor-panel">
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label htmlFor="stream">ลิงก์ YouTube Live</label>
+          <input
+            id="stream"
+            value={liveStreamUrl}
+            onChange={(e) => setLiveStreamUrl(e.target.value)}
+            placeholder="https://youtube.com/watch?v=... หรือ youtu.be/..."
+          />
+          <p className="field-hint">วางลิงก์ไลฟ์ตอนแข่ง · ว่างไว้ถ้าไม่มี · แอปคนดูจะโชว์ปุ่มดูไลฟ์</p>
         </div>
       </div>
 

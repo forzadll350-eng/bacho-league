@@ -49,6 +49,9 @@ interface AppContextValue {
   notifOpen: boolean
   openNotif: () => void
   closeNotif: () => void
+  streamOpen: boolean
+  openStream: () => void
+  closeStream: () => void
   updateText: string
   liveTab: 'events' | 'stats' | 'table'
   setLiveTab: (tab: 'events' | 'stats' | 'table') => void
@@ -73,6 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [detailOpen, setDetailOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [streamOpen, setStreamOpen] = useState(false)
   const [updateSeconds, setUpdateSeconds] = useState(0)
   const [liveTab, setLiveTab] = useState<'events' | 'stats' | 'table'>('events')
   const [detailTab, setDetailTab] = useState<'events' | 'stats' | 'lineup'>('events')
@@ -101,17 +105,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const openDetail = useCallback(() => {
+    setStreamOpen(false)
     setDetailOpen(true)
     document.body.style.overflow = 'hidden'
   }, [])
 
   const closeDetail = useCallback(() => {
     setDetailOpen(false)
-    document.body.style.overflow = ''
-  }, [])
+    if (!streamOpen) document.body.style.overflow = ''
+  }, [streamOpen])
 
   const openNotif = useCallback(() => setNotifOpen(true), [])
   const closeNotif = useCallback(() => setNotifOpen(false), [])
+
+  const openStream = useCallback(() => {
+    setNotifOpen(false)
+    setStreamOpen(true)
+    document.body.style.overflow = 'hidden'
+  }, [])
+
+  const closeStream = useCallback(() => {
+    setStreamOpen(false)
+    if (!detailOpen) document.body.style.overflow = ''
+  }, [detailOpen])
+
   const refresh = useCallback(() => setReloadToken((n) => n + 1), [])
 
   useEffect(() => {
@@ -165,6 +182,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       notifOpen,
       openNotif,
       closeNotif,
+      streamOpen,
+      openStream,
+      closeStream,
       updateText,
       liveTab,
       setLiveTab,
@@ -189,6 +209,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       notifOpen,
       openNotif,
       closeNotif,
+      streamOpen,
+      openStream,
+      closeStream,
       updateText,
       liveTab,
       detailTab,

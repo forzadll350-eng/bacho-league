@@ -27,6 +27,7 @@ export interface MatchRow {
   away_score: number
   live_clock: string | null
   period_label: string | null
+  live_stream_url: string | null
   updated_at: string
   scheduled_at: string
   venue: string | null
@@ -42,6 +43,7 @@ export interface MatchUpdate {
   away_score: number
   live_clock: string | null
   period_label: string | null
+  live_stream_url: string | null
   updated_at: string
 }
 

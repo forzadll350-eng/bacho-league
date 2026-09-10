@@ -2,6 +2,7 @@ import { useApp } from '../context/AppContext'
 import { TeamCrest } from './TeamCrest'
 import { VolleyballSetScore } from './VolleyballSetScore'
 import { LeadAura } from './LeadAura'
+import { parseYouTubeId } from '../lib/youtube'
 
 function parseScore(score: string): { home: number; away: number } | null {
   const m = score.match(/(\d+)\s*[–-]\s*(\d+)/)
@@ -10,12 +11,13 @@ function parseScore(score: string): { home: number; away: number } | null {
 }
 
 export function LiveMatchHero({ compact = false }: { compact?: boolean }) {
-  const { sport, data, openDetail } = useApp()
+  const { sport, data, openDetail, openStream } = useApp()
   const h = data.hero
   const isV = sport === 'volleyball'
   const scores = parseScore(h.score)
   const homeLeading = scores != null && scores.home > scores.away
   const awayLeading = scores != null && scores.away > scores.home
+  const canStream = Boolean(parseYouTubeId(h.liveStreamUrl))
 
   return (
     <article
@@ -83,6 +85,18 @@ export function LiveMatchHero({ compact = false }: { compact?: boolean }) {
           ))}
         </div>
       )}
+      {canStream ? (
+        <button
+          type="button"
+          className="stream-btn"
+          onClick={(e) => {
+            e.stopPropagation()
+            openStream()
+          }}
+        >
+          ดูไลฟ์
+        </button>
+      ) : null}
     </article>
   )
 }

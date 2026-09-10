@@ -3,6 +3,7 @@ import { TopBar } from './components/TopBar'
 import { BottomNavigation } from './components/BottomNavigation'
 import { MatchDetailSheet } from './components/MatchDetailSheet'
 import { NotificationSheet } from './components/NotificationSheet'
+import { LiveStreamSheet } from './components/LiveStreamSheet'
 import { HomePage } from './pages/HomePage'
 import { LivePage } from './pages/LivePage'
 import { MatchesPage } from './pages/MatchesPage'
@@ -23,6 +24,7 @@ export default function App() {
       <BottomNavigation />
       <MatchDetailSheet />
       <NotificationSheet />
+      <LiveStreamSheet />
     </AppProvider>
   )
 }

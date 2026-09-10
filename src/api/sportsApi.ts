@@ -35,6 +35,7 @@ type DbMatch = {
   live_clock: string | null
   period_label: string | null
   detail: boolean
+  live_stream_url: string | null
 }
 
 type DbStanding = {
@@ -101,6 +102,7 @@ function mapMatch(row: DbMatch, teams: Map<string, Team>): Match {
     liveClock: row.live_clock ?? undefined,
     periodLabel: row.period_label ?? undefined,
     detail: row.detail,
+    liveStreamUrl: row.live_stream_url ?? undefined,
   }
 }
 
@@ -146,6 +148,7 @@ function buildHero(sport: SportType, match: Match | undefined) {
     state: match.periodLabel ?? (match.status === 'live' ? 'กำลังแข่งขัน' : match.status),
     clock: match.liveClock ?? (sport === 'volleyball' ? 'SET' : 'LIVE'),
     league: base.hero.league,
+    liveStreamUrl: match.liveStreamUrl,
   }
 }
 

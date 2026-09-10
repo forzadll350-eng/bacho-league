@@ -59,6 +59,7 @@ export interface Match {
   liveClock?: string
   periodLabel?: string
   detail?: boolean
+  liveStreamUrl?: string
 }
 
 export interface FootballMatchEvent {
@@ -140,6 +141,7 @@ export interface LiveHeroData {
   clock: string
   stats: [string, string][]
   sets?: VolleyballSet[]
+  liveStreamUrl?: string
 }
 
 export interface SportBundle {
