@@ -4,8 +4,32 @@ import { LiveMatchHero } from '../components/LiveMatchHero'
 import { MatchCard } from '../components/MatchCard'
 import { StandingsTable } from '../components/StandingsTable'
 
+function goQuick(
+  label: string,
+  setPage: ReturnType<typeof useApp>['setPage'],
+  setFixturesTab: ReturnType<typeof useApp>['setFixturesTab'],
+) {
+  if (label === 'กำลังแข่งขัน') {
+    setPage('live')
+    return
+  }
+  if (label === 'จบแล้ว') {
+    setFixturesTab('results')
+    setPage('fixtures')
+    return
+  }
+  if (label === 'รอแข่งขัน') {
+    setFixturesTab('upcoming')
+    setPage('fixtures')
+    return
+  }
+  if (label === 'คะแนนทีมนำ') {
+    setPage('standings')
+  }
+}
+
 export function HomePage() {
-  const { page, data, setPage } = useApp()
+  const { page, data, setPage, setFixturesTab } = useApp()
 
   return (
     <section className={`page${page === 'home' ? ' active' : ''}`} id="page-home">
@@ -44,10 +68,15 @@ export function HomePage() {
       </div>
       <div className="quick-grid">
         {data.quick.map(([value, label]) => (
-          <div className="card quick" key={label}>
+          <button
+            type="button"
+            className="card quick quick-btn"
+            key={label}
+            onClick={() => goQuick(label, setPage, setFixturesTab)}
+          >
             <span>{label}</span>
             <b className="sports-num">{value}</b>
-          </div>
+          </button>
         ))}
       </div>
     </section>

@@ -1,14 +1,14 @@
 -- Seed: 8 อปท. + sample season 2569 (matches mock for Phase B demo)
 
 insert into public.teams (id, name_th, name_en, short_name, crest_url, org_th, sort_order) values
-  ('lubosawo', 'อบต.ลุโบะสาวอ', 'SAO Lubosawo', 'LS', '/crests/lubosawo.png', 'อบต.ลุโบะสาวอ', 1),
-  ('palukasamoh', 'อบต.ปะลุกาสาเมาะ', 'SAO Palukasamoh', 'PK', '/crests/palukasamoh.png', 'อบต.ปะลุกาสาเมาะ', 2),
-  ('tonsai', 'เทศบาลตำบลต้นไทร', 'Tonsai Municipality', 'TS', '/crests/tonsai.png', 'เทศบาลตำบลต้นไทร', 3),
-  ('barehtai', 'อบต.บาเระใต้', 'SAO Bare Tai', 'BT', '/crests/barehtai.png', 'อบต.บาเระใต้', 4),
-  ('bare-nuea', 'อบต.บาเราะเหนือ', 'SAO Bare Nuea', 'BN', '/crests/bare-nuea.png', 'อบต.บาเราะเหนือ', 5),
-  ('bacho-sao', 'อบต.บาเจาะ', 'SAO Bacho', 'BS', '/crests/bacho-sao.png', 'อบต.บาเจาะ', 6),
-  ('kayoh-mati', 'อบต.กาเยาะมาตี', 'SAO Kayoh Mati', 'KM', '/crests/kayoh-mati.png', 'อบต.กาเยาะมาตี', 7),
-  ('bacho-municipal', 'เทศบาลตำบลบาเจาะ', 'Bacho Municipality', 'BM', '/crests/bacho-municipal.png', 'เทศบาลตำบลบาเจาะ', 8);
+  ('lubosawo', 'อบต.ลุโบะสาวอ', 'SAO Lubosawo', 'LS', '/crests/lubosawo.webp', 'อบต.ลุโบะสาวอ', 1),
+  ('palukasamoh', 'อบต.ปะลุกาสาเมาะ', 'SAO Palukasamoh', 'PK', '/crests/palukasamoh.webp', 'อบต.ปะลุกาสาเมาะ', 2),
+  ('tonsai', 'เทศบาลตำบลต้นไทร', 'Tonsai Municipality', 'TS', '/crests/tonsai.webp', 'เทศบาลตำบลต้นไทร', 3),
+  ('barehtai', 'อบต.บาเระใต้', 'SAO Bare Tai', 'BT', '/crests/barehtai.webp', 'อบต.บาเระใต้', 4),
+  ('bare-nuea', 'อบต.บาเราะเหนือ', 'SAO Bare Nuea', 'BN', '/crests/bare-nuea.webp', 'อบต.บาเราะเหนือ', 5),
+  ('bacho-sao', 'อบต.บาเจาะ', 'SAO Bacho', 'BS', '/crests/bacho-sao.webp', 'อบต.บาเจาะ', 6),
+  ('kayoh-mati', 'อบต.กาเยาะมาตี', 'SAO Kayoh Mati', 'KM', '/crests/kayoh-mati.webp', 'อบต.กาเยาะมาตี', 7),
+  ('bacho-municipal', 'เทศบาลตำบลบาเจาะ', 'Bacho Municipality', 'BM', '/crests/bacho-municipal.webp', 'เทศบาลตำบลบาเจาะ', 8);
 
 insert into public.competitions (id, name_th, name_en, sport) values
   ('comp-football', 'ฟุตซอลลีก', 'Futsal League', 'football'),

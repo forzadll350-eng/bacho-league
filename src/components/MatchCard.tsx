@@ -51,12 +51,12 @@ export function MatchCard({ match }: { match: Match }) {
       </div>
       <div className="match-row">
         <div className="mini-team">
-          <img className="mini-crest" src={match.homeTeam.crestUrl} alt="" />
+          <img className="mini-crest" src={match.homeTeam.crestUrl} alt="" loading="lazy" decoding="async" width={40} height={40} />
           <span>{match.homeTeam.nameTh}</span>
         </div>
         <div className="mini-score sports-num">{scoreDisplay(match)}</div>
         <div className="mini-team right">
-          <img className="mini-crest" src={match.awayTeam.crestUrl} alt="" />
+          <img className="mini-crest" src={match.awayTeam.crestUrl} alt="" loading="lazy" decoding="async" width={40} height={40} />
           <span>{match.awayTeam.nameTh}</span>
         </div>
       </div>

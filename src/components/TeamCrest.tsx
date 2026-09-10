@@ -27,6 +27,9 @@ export function TeamCrest({
         alt={team.nameTh}
         className={imgClassName}
         loading="lazy"
+        decoding="async"
+        width={96}
+        height={96}
         onError={() => setFailed(true)}
       />
     </div>

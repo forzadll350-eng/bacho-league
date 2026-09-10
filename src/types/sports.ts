@@ -10,6 +10,8 @@ export type MatchStatus =
 
 export type AppPage = 'home' | 'live' | 'fixtures' | 'standings' | 'more'
 
+export type ThemeMode = 'dark' | 'light'
+
 export type FootballEventType =
   | 'goal'
   | 'yellow_card'

@@ -7,7 +7,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'อบต.ลุโบะสาวอ',
     nameEn: 'SAO Lubosawo',
     shortName: 'LS',
-    crestUrl: '/crests/lubosawo.png',
+    crestUrl: '/crests/lubosawo.webp',
     orgTh: 'อบต.ลุโบะสาวอ',
   },
   palukasamoh: {
@@ -15,7 +15,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'อบต.ปะลุกาสาเมาะ',
     nameEn: 'SAO Palukasamoh',
     shortName: 'PK',
-    crestUrl: '/crests/palukasamoh.png',
+    crestUrl: '/crests/palukasamoh.webp',
     orgTh: 'อบต.ปะลุกาสาเมาะ',
   },
   tonsai: {
@@ -23,7 +23,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'เทศบาลตำบลต้นไทร',
     nameEn: 'Tonsai Municipality',
     shortName: 'TS',
-    crestUrl: '/crests/tonsai.png',
+    crestUrl: '/crests/tonsai.webp',
     orgTh: 'เทศบาลตำบลต้นไทร',
   },
   barehtai: {
@@ -31,7 +31,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'อบต.บาเระใต้',
     nameEn: 'SAO Bare Tai',
     shortName: 'BT',
-    crestUrl: '/crests/barehtai.png',
+    crestUrl: '/crests/barehtai.webp',
     orgTh: 'อบต.บาเระใต้',
   },
   bareNuea: {
@@ -39,7 +39,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'อบต.บาเราะเหนือ',
     nameEn: 'SAO Bare Nuea',
     shortName: 'BN',
-    crestUrl: '/crests/bare-nuea.png',
+    crestUrl: '/crests/bare-nuea.webp',
     orgTh: 'อบต.บาเราะเหนือ',
   },
   bachoSao: {
@@ -47,7 +47,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'อบต.บาเจาะ',
     nameEn: 'SAO Bacho',
     shortName: 'BS',
-    crestUrl: '/crests/bacho-sao.png',
+    crestUrl: '/crests/bacho-sao.webp',
     orgTh: 'อบต.บาเจาะ',
   },
   kayohMati: {
@@ -55,7 +55,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'อบต.กาเยาะมาตี',
     nameEn: 'SAO Kayoh Mati',
     shortName: 'KM',
-    crestUrl: '/crests/kayoh-mati.png',
+    crestUrl: '/crests/kayoh-mati.webp',
     orgTh: 'อบต.กาเยาะมาตี',
   },
   bachoMunicipal: {
@@ -63,7 +63,7 @@ export const TEAMS: Record<string, Team> = {
     nameTh: 'เทศบาลตำบลบาเจาะ',
     nameEn: 'Bacho Municipality',
     shortName: 'BM',
-    crestUrl: '/crests/bacho-municipal.png',
+    crestUrl: '/crests/bacho-municipal.webp',
     orgTh: 'เทศบาลตำบลบาเจาะ',
   },
 }
@@ -84,7 +84,7 @@ export const LEAGUE = {
   id: 'bacho-league',
   nameTh: 'ฟุตซอลลีก',
   taglineTh: 'สายใยสัมพันธ์ อบต.อำเภอบาเจาะ',
-  crestUrl: '/crests/league.png',
+  crestUrl: '/crests/league.webp',
   seasonName: 'สายใยสัมพันธ์ 2569',
   yearBe: 2569,
 } as const

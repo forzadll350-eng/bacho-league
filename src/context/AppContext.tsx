@@ -13,13 +13,33 @@ import {
   loadSportBundle,
   subscribeSportUpdates,
 } from '../api/sportsApi'
-import type { AppPage, SportBundle, SportType } from '../types/sports'
+import type { AppPage, SportBundle, SportType, ThemeMode } from '../types/sports'
+
+const THEME_KEY = 'bacho-league-theme'
+
+function readStoredTheme(): ThemeMode {
+  try {
+    // First open / no preference → dark (standard for this app)
+    if (localStorage.getItem(THEME_KEY) === 'light') return 'light'
+  } catch {
+    /* ignore */
+  }
+  return 'dark'
+}
+
+function applyTheme(theme: ThemeMode) {
+  document.documentElement.setAttribute('data-theme', theme)
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', theme === 'light' ? '#f2f3f5' : '#000000')
+}
 
 interface AppContextValue {
   sport: SportType
   setSport: (sport: SportType) => void
   page: AppPage
   setPage: (page: AppPage) => void
+  theme: ThemeMode
+  setTheme: (theme: ThemeMode) => void
   data: SportBundle
   loading: boolean
   usingLiveData: boolean
@@ -44,6 +64,11 @@ const AppContext = createContext<AppContextValue | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [sport, setSportState] = useState<SportType>('football')
   const [page, setPageState] = useState<AppPage>('home')
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const initial = readStoredTheme()
+    applyTheme(initial)
+    return initial
+  })
   const [data, setData] = useState<SportBundle>(MOCK.football)
   const [loading, setLoading] = useState(true)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -63,6 +88,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setPage = useCallback((next: AppPage) => {
     setPageState(next)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const setTheme = useCallback((next: ThemeMode) => {
+    setThemeState(next)
+    applyTheme(next)
+    try {
+      localStorage.setItem(THEME_KEY, next)
+    } catch {
+      /* ignore */
+    }
   }, [])
 
   const openDetail = useCallback(() => {
@@ -119,6 +154,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSport,
       page,
       setPage,
+      theme,
+      setTheme,
       data,
       loading,
       usingLiveData: isSupabaseConfigured,
@@ -142,6 +179,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSport,
       page,
       setPage,
+      theme,
+      setTheme,
       data,
       loading,
       detailOpen,

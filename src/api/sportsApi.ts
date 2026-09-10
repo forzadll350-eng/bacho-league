@@ -65,7 +65,7 @@ function mapTeam(row: DbTeam): Team {
     nameTh: row.name_th,
     nameEn: row.name_en ?? row.name_th,
     shortName: row.short_name,
-    crestUrl: row.crest_url ?? `/crests/${row.id}.png`,
+    crestUrl: (row.crest_url ?? `/crests/${row.id}.webp`).replace(/\.png$/i, '.webp'),
     orgTh: row.org_th ?? row.name_th,
   }
 }

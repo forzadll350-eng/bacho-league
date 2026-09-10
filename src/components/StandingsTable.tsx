@@ -26,7 +26,7 @@ export function StandingsTable({
             <div className="lt-rank">{r.rank}</div>
             <div className="lt-club">
               <span className="club-dot">
-                <img src={r.team.crestUrl} alt="" />
+                <img src={r.team.crestUrl} alt="" loading="lazy" decoding="async" width={34} height={34} />
               </span>
               <b>{r.team.nameTh}</b>
             </div>

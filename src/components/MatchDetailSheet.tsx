@@ -33,12 +33,12 @@ export function MatchDetailSheet() {
             <small>{data.hero.league}</small>
             <div className="detail-teams">
               <div className="detail-team">
-                <img src={data.hero.home.crestUrl} alt="" />
+                <img src={data.hero.home.crestUrl} alt="" decoding="async" width={52} height={52} />
                 <b>{data.hero.home.nameTh}</b>
               </div>
               <h3 className="sports-num">{data.hero.score}</h3>
               <div className="detail-team">
-                <img src={data.hero.away.crestUrl} alt="" />
+                <img src={data.hero.away.crestUrl} alt="" decoding="async" width={52} height={52} />
                 <b>{data.hero.away.nameTh}</b>
               </div>
             </div>

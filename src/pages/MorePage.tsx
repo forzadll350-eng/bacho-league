@@ -1,8 +1,9 @@
+import { Moon, Sun } from 'lucide-react'
 import { LEAGUE, TEAM_LIST } from '../data/teams'
 import { useApp } from '../context/AppContext'
 
 export function MorePage() {
-  const { page } = useApp()
+  const { page, theme, setTheme } = useApp()
 
   return (
     <section className={`page${page === 'more' ? ' active' : ''}`} id="page-more">
@@ -25,36 +26,33 @@ export function MorePage() {
         ))}
       </div>
 
-      <div className="card menu" style={{ marginTop: 16 }}>
-        <div className="menu-row">
-          <div className="menu-left">
-            <div className="menu-icon">S</div>
-            <div>
-              <div className="menu-title">สถิติ</div>
-              <div className="menu-sub">สถิติทีมและการแข่งขัน</div>
-            </div>
-          </div>
-          <div className="chev">›</div>
+      <div className="section-head">
+        <h2>การแสดงผล</h2>
+      </div>
+      <div className="card theme-card">
+        <div>
+          <b>โหมดธีม</b>
+          <p>สลับระหว่างพื้นหลังมืดและสว่าง</p>
         </div>
-        <div className="menu-row">
-          <div className="menu-left">
-            <div className="menu-icon">R</div>
-            <div>
-              <div className="menu-title">รายงาน</div>
-              <div className="menu-sub">รายงานผลการแข่งขัน</div>
-            </div>
-          </div>
-          <div className="chev">›</div>
-        </div>
-        <div className="menu-row">
-          <div className="menu-left">
-            <div className="menu-icon">⚙</div>
-            <div>
-              <div className="menu-title">ตั้งค่า</div>
-              <div className="menu-sub">ภาษา การแจ้งเตือน และการแสดงผล</div>
-            </div>
-          </div>
-          <div className="chev">›</div>
+        <div className="theme-toggle" role="group" aria-label="โหมดธีม">
+          <button
+            type="button"
+            className={theme === 'dark' ? 'active' : ''}
+            onClick={() => setTheme('dark')}
+            aria-pressed={theme === 'dark'}
+          >
+            <Moon size={14} strokeWidth={1.8} />
+            มืด
+          </button>
+          <button
+            type="button"
+            className={theme === 'light' ? 'active' : ''}
+            onClick={() => setTheme('light')}
+            aria-pressed={theme === 'light'}
+          >
+            <Sun size={14} strokeWidth={1.8} />
+            สว่าง
+          </button>
         </div>
       </div>
 
