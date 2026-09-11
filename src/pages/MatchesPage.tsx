@@ -5,11 +5,8 @@ import type { Match } from '../types/sports'
 
 type GroupFilter = 'all' | 'A' | 'B' | 'knockout'
 
-function stageLabel(m: Match) {
-  if (m.stage === 'final') return 'นัดชิง'
-  if (m.stage === 'semi') return 'รองฯ'
-  if (m.groupCode) return `สาย ${m.groupCode}`
-  return ''
+function byTime(a: Match, b: Match) {
+  return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
 }
 
 export function MatchesPage() {
@@ -17,15 +14,31 @@ export function MatchesPage() {
   const [groupTab, setGroupTab] = useState<GroupFilter>('all')
 
   const filtered = useMemo(() => {
-    return data.matches.filter((m) => {
-      if (fixturesTab === 'upcoming' && m.status !== 'scheduled') return false
-      if (fixturesTab === 'results' && m.status !== 'finished') return false
-      if (groupTab === 'A') return m.groupCode === 'A'
-      if (groupTab === 'B') return m.groupCode === 'B'
-      if (groupTab === 'knockout') return m.stage === 'semi' || m.stage === 'final'
-      return true
-    })
+    return data.matches
+      .filter((m) => {
+        if (fixturesTab === 'upcoming' && m.status !== 'scheduled') return false
+        if (fixturesTab === 'results' && m.status !== 'finished') return false
+        if (groupTab === 'A') return m.groupCode === 'A'
+        if (groupTab === 'B') return m.groupCode === 'B'
+        if (groupTab === 'knockout') return m.stage === 'semi' || m.stage === 'final'
+        return true
+      })
+      .sort(byTime)
   }, [data.matches, fixturesTab, groupTab])
+
+  const sections = useMemo(() => {
+    if (groupTab !== 'all') {
+      return [{ key: groupTab, title: null as string | null, items: filtered }]
+    }
+    const a = filtered.filter((m) => m.groupCode === 'A')
+    const b = filtered.filter((m) => m.groupCode === 'B')
+    const k = filtered.filter((m) => m.stage === 'semi' || m.stage === 'final')
+    return [
+      { key: 'A', title: 'สาย A · สนาม A', items: a },
+      { key: 'B', title: 'สาย B · สนาม B', items: b },
+      { key: 'K', title: 'รอบชิง (รองฯ → นัดชิง)', items: k },
+    ]
+  }, [filtered, groupTab])
 
   return (
     <section className={`page${page === 'fixtures' ? ' active' : ''}`} id="page-fixtures">
@@ -57,13 +70,13 @@ export function MatchesPage() {
         ))}
       </div>
 
-      <div className="seg group-seg" role="tablist">
+      <div className="seg seg-quad group-seg" role="tablist">
         {(
           [
             ['all', 'ทุกสาย'],
             ['A', 'สาย A'],
             ['B', 'สาย B'],
-            ['knockout', 'รองฯ/ชิง'],
+            ['knockout', 'รอบชิง'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -79,21 +92,21 @@ export function MatchesPage() {
 
       <div className="date-title">วันนี้ • 21 ก.ย. 2569</div>
 
-      {filtered.length === 0 ? (
+      {sections.every((s) => s.items.length === 0) ? (
         <div className="card" style={{ padding: 16, color: 'var(--muted)', fontSize: 13 }}>
           ไม่มีรายการในหมวดนี้
         </div>
       ) : (
-        filtered.map((m) => (
-          <div key={m.id}>
-            {(m.courtLabel || m.groupCode || m.stage) && (
-              <div className="match-lane">
-                {[stageLabel(m), m.courtLabel || m.venue].filter(Boolean).join(' · ')}
-              </div>
-            )}
-            <MatchCard match={m} />
-          </div>
-        ))
+        sections.map((section) =>
+          section.items.length === 0 ? null : (
+            <div className="fixture-block" key={section.key}>
+              {section.title ? <div className="fixture-block-title">{section.title}</div> : null}
+              {section.items.map((m) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
+            </div>
+          ),
+        )
       )}
     </section>
   )

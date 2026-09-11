@@ -940,6 +940,124 @@ button {
   min-height: 48px;
 }
 
+.lt-head-full,
+.lt-row-full {
+  grid-template-columns: 24px minmax(0, 1.4fr) 28px 28px 28px 36px 36px;
+  gap: 2px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.lt-title {
+  padding: 12px 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lt-empty {
+  padding: 16px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lt-num {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.lt-gd {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.lt-head-full .lt-num,
+.lt-head-full > div:not(:nth-child(2)) {
+  text-align: center;
+}
+
+.standings-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.knockout-board {
+  padding: 14px;
+}
+
+.knockout-path {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.knockout-step {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: var(--panel3);
+  border: 1px solid var(--line-soft);
+}
+
+.knockout-label {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.knockout-step p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.knockout-arrow {
+  color: var(--muted);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.knockout-matches .match-card {
+  margin-bottom: 8px;
+}
+
+.knockout-matches .match-card:last-child {
+  margin-bottom: 0;
+}
+
+.knockout-empty {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.seg-quad {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.seg-quad button {
+  font-size: 9px;
+  padding: 0 2px;
+}
+
+.fixture-block {
+  margin-bottom: 14px;
+}
+
+.fixture-block-title {
+  margin: 4px 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+
 .lt-head {
   color: var(--muted);
   font-size: 9px;

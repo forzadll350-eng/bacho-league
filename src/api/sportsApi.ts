@@ -165,6 +165,32 @@ function buildHero(sport: SportType, match: Match | undefined) {
   }
 }
 
+function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): StandingRow[] {
+  const scored = matches.filter(
+    (m) => m.status === 'finished' || m.status === 'live' || m.status === 'halftime',
+  )
+
+  return table.map((row) => {
+    let goalsFor = 0
+    let goalsAgainst = 0
+    for (const m of scored) {
+      if (m.homeTeam.id === row.team.id) {
+        goalsFor += m.homeScore
+        goalsAgainst += m.awayScore
+      } else if (m.awayTeam.id === row.team.id) {
+        goalsFor += m.awayScore
+        goalsAgainst += m.homeScore
+      }
+    }
+    return {
+      ...row,
+      goalsFor,
+      goalsAgainst,
+      goalDifference: goalsFor - goalsAgainst,
+    }
+  })
+}
+
 function mergeBundle(
   sport: SportType,
   matches: Match[],
@@ -176,7 +202,8 @@ function mergeBundle(
   const liveCount = matches.filter((m) => m.status === 'live' || m.status === 'halftime').length
   const done = matches.filter((m) => m.status === 'finished').length
   const scheduled = matches.filter((m) => m.status === 'scheduled').length
-  const leadPts = table[0]?.points ?? 0
+  const enriched = enrichStandingsWithGoals(table.length ? table : base.table, matches.length ? matches : base.matches)
+  const leadPts = enriched[0]?.points ?? 0
 
   return {
     ...base,
@@ -186,7 +213,7 @@ function mergeBundle(
       : base.liveSub,
     hero: buildHero(sport, live),
     matches: matches.length ? matches : base.matches,
-    table: table.length ? table : base.table,
+    table: enriched,
     notifications: notifications.length ? notifications : base.notifications,
     quick: [
       [String(liveCount), 'กำลังแข่งขัน'],

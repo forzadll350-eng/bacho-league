@@ -1,20 +1,33 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { LEAGUE } from '../data/teams'
 import { useApp } from '../context/AppContext'
 import { StandingsTable } from '../components/StandingsTable'
+import { MatchCard } from '../components/MatchCard'
 
 export function StandingsPage() {
   const { page, data } = useApp()
-  const [groupTab, setGroupTab] = useState<'A' | 'B'>('A')
 
-  const rows = useMemo(() => {
-    const grouped = data.table.filter((r) => r.groupCode === groupTab)
-    if (grouped.length) return grouped
-    // fallback if group_code not yet on rows
-    return data.table
-  }, [data.table, groupTab])
+  const groupA = useMemo(
+    () => data.table.filter((r) => r.groupCode === 'A').sort((a, b) => a.rank - b.rank),
+    [data.table],
+  )
+  const groupB = useMemo(
+    () => data.table.filter((r) => r.groupCode === 'B').sort((a, b) => a.rank - b.rank),
+    [data.table],
+  )
+  const knockout = useMemo(
+    () =>
+      data.matches
+        .filter((m) => m.stage === 'semi' || m.stage === 'final')
+        .sort((a, b) => {
+          const order = { semi: 0, final: 1, group: 2 }
+          return (order[a.stage ?? 'group'] ?? 9) - (order[b.stage ?? 'group'] ?? 9)
+        }),
+    [data.matches],
+  )
 
-  const lotteryHint = rows.some((r) => r.lotteryNote)
+  const rowsA = groupA.length ? groupA : data.table.slice(0, 4)
+  const rowsB = groupB.length ? groupB : data.table.slice(4, 8)
 
   return (
     <section className={`page${page === 'standings' ? ' active' : ''}`} id="page-standings">
@@ -22,34 +35,47 @@ export function StandingsPage() {
         <div>
           <h1>ตารางคะแนน</h1>
           <p>
-            {LEAGUE.seasonName} · 21 ก.ย. 2569 · เสมอกันใช้จับฉลาก
+            {LEAGUE.seasonName} · 21 ก.ย. 2569 · เสมอกันจับฉลาก
           </p>
         </div>
       </div>
 
-      <div className="seg" role="tablist">
-        <button
-          type="button"
-          className={groupTab === 'A' ? 'active' : ''}
-          onClick={() => setGroupTab('A')}
-        >
-          สาย A
-        </button>
-        <button
-          type="button"
-          className={groupTab === 'B' ? 'active' : ''}
-          onClick={() => setGroupTab('B')}
-        >
-          สาย B
-        </button>
+      <div className="standings-stack">
+        <StandingsTable title="สาย A" rows={rowsA} />
+        <StandingsTable title="สาย B" rows={rowsB} />
       </div>
 
-      <StandingsTable rows={rows} />
-      {lotteryHint ? (
-        <p className="standings-note">มีทีมที่จัดอันดับด้วยจับฉลาก — ดูหมายเหตุที่แอดมิน</p>
-      ) : (
-        <p className="standings-note">คะแนนเท่ากัน → จับฉลากจัดอันดับ (ไม่ใช้ประตูได้เสีย)</p>
-      )}
+      <p className="standings-note">
+        ได้ / เสีย / +/− ไว้ดูประกอบ · จัดอันดับเมื่อแต้มเท่ากันใช้จับฉลาก
+      </p>
+
+      <div className="section-head">
+        <h2>เส้นทางชิงชนะเลิศ</h2>
+      </div>
+      <div className="card knockout-board">
+        <div className="knockout-path">
+          <div className="knockout-step">
+            <span className="knockout-label">รองฯ</span>
+            <p>A1 พบ B2 · A2 พบ B1</p>
+          </div>
+          <div className="knockout-arrow" aria-hidden>
+            →
+          </div>
+          <div className="knockout-step">
+            <span className="knockout-label">นัดชิง</span>
+            <p>ผู้ชนะรองฯ พบกัน</p>
+          </div>
+        </div>
+        {knockout.length ? (
+          <div className="knockout-matches">
+            {knockout.map((m) => (
+              <MatchCard key={m.id} match={m} />
+            ))}
+          </div>
+        ) : (
+          <p className="knockout-empty">จะอัปเดตคู่จริงหลังจบสาย + จับฉลาก (ถ้าจำเป็น)</p>
+        )}
+      </div>
     </section>
   )
 }
