@@ -3,6 +3,7 @@ import { TeamCrest } from './TeamCrest'
 import { VolleyballSetScore } from './VolleyballSetScore'
 import { LeadAura } from './LeadAura'
 import { parseYouTubeId } from '../lib/youtube'
+import type { LiveHeroData } from '../types/sports'
 
 function parseScore(score: string): { home: number; away: number } | null {
   const m = score.match(/(\d+)\s*[–-]\s*(\d+)/)
@@ -10,13 +11,22 @@ function parseScore(score: string): { home: number; away: number } | null {
   return { home: Number(m[1]), away: Number(m[2]) }
 }
 
-export function LiveMatchHero({ compact = false }: { compact?: boolean }) {
+export function LiveMatchHero({
+  compact = false,
+  hero,
+  isLive,
+}: {
+  compact?: boolean
+  hero?: LiveHeroData
+  isLive?: boolean
+}) {
   const { sport, data, openDetail, openStream } = useApp()
-  const h = data.hero
+  const h = hero ?? data.hero
+  const live = isLive ?? true
   const isV = sport === 'volleyball'
   const scores = parseScore(h.score)
-  const homeLeading = scores != null && scores.home > scores.away
-  const awayLeading = scores != null && scores.away > scores.home
+  const homeLeading = live && scores != null && scores.home > scores.away
+  const awayLeading = live && scores != null && scores.away > scores.home
   const canStream = Boolean(parseYouTubeId(h.liveStreamUrl))
 
   return (
@@ -37,9 +47,9 @@ export function LiveMatchHero({ compact = false }: { compact?: boolean }) {
       }
     >
       <div className="hero-top">
-        <div className="live-pill">
-          <span className="pulse" />
-          สด • {h.clock}
+        <div className={`live-pill${live ? '' : ' wait'}`}>
+          {live ? <span className="pulse" /> : null}
+          {live ? `สด • ${h.clock}` : h.clock}
         </div>
         <button
           type="button"
@@ -75,7 +85,7 @@ export function LiveMatchHero({ compact = false }: { compact?: boolean }) {
       </div>
       {isV && h.sets ? (
         <VolleyballSetScore sets={h.sets} currentSet={4} />
-      ) : (
+      ) : live ? (
         <div className="hero-stats">
           {h.stats.map(([value, label]) => (
             <div className="hero-stat" key={label}>
@@ -83,6 +93,15 @@ export function LiveMatchHero({ compact = false }: { compact?: boolean }) {
               <span>{label}</span>
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="hero-stats">
+          <div className="hero-stat" style={{ gridColumn: '1 / -1' }}>
+            <b className="sports-num" style={{ fontSize: 13 }}>
+              {h.state}
+            </b>
+            <span>สลับสายด้านบนเพื่อดูสนามอีกฝั่ง</span>
+          </div>
         </div>
       )}
       {canStream ? (

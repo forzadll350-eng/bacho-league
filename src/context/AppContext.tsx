@@ -59,6 +59,8 @@ interface AppContextValue {
   setDetailTab: (tab: 'events' | 'stats' | 'lineup') => void
   fixturesTab: 'today' | 'upcoming' | 'results'
   setFixturesTab: (tab: 'today' | 'upcoming' | 'results') => void
+  homeGroup: 'A' | 'B'
+  setHomeGroup: (group: 'A' | 'B') => void
   refresh: () => void
 }
 
@@ -81,6 +83,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [liveTab, setLiveTab] = useState<'events' | 'stats' | 'table'>('events')
   const [detailTab, setDetailTab] = useState<'events' | 'stats' | 'lineup'>('events')
   const [fixturesTab, setFixturesTab] = useState<'today' | 'upcoming' | 'results'>('today')
+  const [homeGroup, setHomeGroup] = useState<'A' | 'B'>('A')
   const [reloadToken, setReloadToken] = useState(0)
 
   const setSport = useCallback((next: SportType) => {
@@ -192,6 +195,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDetailTab,
       fixturesTab,
       setFixturesTab,
+      homeGroup,
+      setHomeGroup,
       refresh,
     }),
     [
@@ -216,6 +221,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       liveTab,
       detailTab,
       fixturesTab,
+      homeGroup,
       refresh,
     ],
   )
