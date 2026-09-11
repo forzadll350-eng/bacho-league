@@ -9,6 +9,7 @@ import { LivePage } from './pages/LivePage'
 import { MatchesPage } from './pages/MatchesPage'
 import { StandingsPage } from './pages/StandingsPage'
 import { MorePage } from './pages/MorePage'
+import { RegisterPage } from './pages/RegisterPage'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <MatchesPage />
         <StandingsPage />
         <MorePage />
+        <RegisterPage />
       </div>
       <BottomNavigation />
       <MatchDetailSheet />

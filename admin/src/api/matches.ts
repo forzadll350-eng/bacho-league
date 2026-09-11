@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 import type { MatchRow, MatchUpdate, SportType, TeamRow } from '../types'
 
 const MATCH_SELECT =
-  'id, sport, status, home_score, away_score, live_clock, period_label, live_stream_url, updated_at, scheduled_at, venue, home_team_id, away_team_id, home:teams!home_team_id(id, name_th, name_en, short_name), away:teams!away_team_id(id, name_th, name_en, short_name)'
+  'id, sport, status, home_score, away_score, live_clock, period_label, live_stream_url, group_code, stage, court_label, updated_at, scheduled_at, venue, home_team_id, away_team_id, home:teams!home_team_id(id, name_th, name_en, short_name), away:teams!away_team_id(id, name_th, name_en, short_name)'
 
 type RawTeam = TeamRow | TeamRow[] | null
 

@@ -3,7 +3,7 @@ import { LEAGUE, TEAM_LIST } from '../data/teams'
 import { useApp } from '../context/AppContext'
 
 export function MorePage() {
-  const { page, theme, setTheme } = useApp()
+  const { page, theme, setTheme, setPage } = useApp()
 
   return (
     <section className={`page${page === 'more' ? ' active' : ''}`} id="page-more">
@@ -13,6 +13,14 @@ export function MorePage() {
           <p>ข้อมูลและเมนูอื่น ๆ</p>
         </div>
       </div>
+
+      <button type="button" className="card menu-cta" onClick={() => setPage('register')}>
+        <div>
+          <div className="menu-title">ลงทะเบียนนักกีฬา</div>
+          <div className="menu-sub">ฟุตซอลชาย / วอลเลย์หญิง · 21 ก.ย. 2569</div>
+        </div>
+        <div className="chev">›</div>
+      </button>
 
       <div className="section-head" style={{ marginTop: 4 }}>
         <h2>ทีมในลีก · 8 อปท.</h2>

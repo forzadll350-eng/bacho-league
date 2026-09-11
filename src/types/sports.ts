@@ -8,9 +8,19 @@ export type MatchStatus =
   | 'postponed'
   | 'cancelled'
 
-export type AppPage = 'home' | 'live' | 'fixtures' | 'standings' | 'more'
+export type AppPage = 'home' | 'live' | 'fixtures' | 'standings' | 'more' | 'register'
 
 export type ThemeMode = 'dark' | 'light'
+
+export type MatchStage = 'group' | 'semi' | 'final'
+
+export type PlayerPosition =
+  | 'admin_exec'
+  | 'council'
+  | 'civil_servant'
+  | 'mission'
+  | 'general'
+  | 'contract'
 
 export type FootballEventType =
   | 'goal'
@@ -60,6 +70,9 @@ export interface Match {
   periodLabel?: string
   detail?: boolean
   liveStreamUrl?: string
+  groupCode?: 'A' | 'B'
+  stage?: MatchStage
+  courtLabel?: string
 }
 
 export interface FootballMatchEvent {
@@ -115,6 +128,8 @@ export interface StandingRow {
   setsWon?: number
   setsLost?: number
   points: number
+  groupCode?: 'A' | 'B'
+  lotteryNote?: string
 }
 
 export interface LineupPlayer {

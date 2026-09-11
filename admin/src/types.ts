@@ -28,6 +28,9 @@ export interface MatchRow {
   live_clock: string | null
   period_label: string | null
   live_stream_url: string | null
+  group_code: string | null
+  stage: string | null
+  court_label: string | null
   updated_at: string
   scheduled_at: string
   venue: string | null

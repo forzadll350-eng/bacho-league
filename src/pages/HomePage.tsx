@@ -36,7 +36,7 @@ export function HomePage() {
       <div className="section-head">
         <div>
           <h1>วันแข่งขัน</h1>
-          <p>{data.homeSub}</p>
+          <p>21 ก.ย. 2569 · สองสายสองสนาม · {data.homeSub}</p>
         </div>
         <button type="button" className="text-btn">
           {LEAGUE.seasonName}

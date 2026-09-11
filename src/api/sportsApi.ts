@@ -36,6 +36,9 @@ type DbMatch = {
   period_label: string | null
   detail: boolean
   live_stream_url: string | null
+  group_code: string | null
+  stage: string | null
+  court_label: string | null
 }
 
 type DbStanding = {
@@ -49,6 +52,8 @@ type DbStanding = {
   points: number
   sets_won: number | null
   sets_lost: number | null
+  group_code: string | null
+  lottery_note: string | null
 }
 
 type DbNotification = {
@@ -103,6 +108,12 @@ function mapMatch(row: DbMatch, teams: Map<string, Team>): Match {
     periodLabel: row.period_label ?? undefined,
     detail: row.detail,
     liveStreamUrl: row.live_stream_url ?? undefined,
+    groupCode: row.group_code === 'A' || row.group_code === 'B' ? row.group_code : undefined,
+    stage:
+      row.stage === 'group' || row.stage === 'semi' || row.stage === 'final'
+        ? row.stage
+        : undefined,
+    courtLabel: row.court_label ?? undefined,
   }
 }
 
@@ -118,6 +129,8 @@ function mapStanding(row: DbStanding, teams: Map<string, Team>): StandingRow {
     points: row.points,
     setsWon: row.sets_won ?? undefined,
     setsLost: row.sets_lost ?? undefined,
+    groupCode: row.group_code === 'A' || row.group_code === 'B' ? row.group_code : undefined,
+    lotteryNote: row.lottery_note ?? undefined,
   }
 }
 

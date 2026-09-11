@@ -1729,6 +1729,105 @@ button {
   text-align: center;
 }
 
+.group-seg {
+  margin-top: 8px;
+}
+
+.match-lane {
+  margin: 0 2px 6px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.standings-note {
+  margin: 10px 2px 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.menu-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 15px;
+  margin-bottom: 8px;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.reg-form {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reg-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reg-form label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.reg-form input,
+.reg-form select {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  padding: 11px 12px;
+  font: inherit;
+}
+
+.reg-quota {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.reg-quota.full {
+  color: var(--live);
+}
+
+.reg-err {
+  font-size: 12px;
+  color: var(--live);
+}
+
+.reg-ok {
+  font-size: 12px;
+  color: var(--green);
+}
+
+.reg-submit {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--invert);
+  color: var(--invert-ink);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.reg-submit:disabled {
+  opacity: 0.45;
+}
+
+.reg-note {
+  margin: 14px 2px 0;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 @media (min-width: 700px) {
   body {
     background: #090909;

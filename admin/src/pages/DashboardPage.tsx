@@ -1,6 +1,7 @@
 import { LogOut, Moon, Sun } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchLeadPoints, fetchMatches, teamName } from '../api/matches'
+import { fetchRegistrations, type RegistrationRow } from '../api/registrations'
 import { useAuth } from '../context/AuthContext'
 import type { MatchRow, SportType, StatusFilter, ThemeMode } from '../types'
 import { SPORT_LABELS, STATUS_LABELS } from '../types'
@@ -20,6 +21,15 @@ function matchesFilter(m: MatchRow, filter: StatusFilter): boolean {
   return m.status === 'scheduled'
 }
 
+const POS_TH: Record<string, string> = {
+  admin_exec: 'ฝ่ายบริหาร',
+  council: 'สมาชิกสภา',
+  civil_servant: 'ข้าราชการ',
+  mission: 'ภารกิจ',
+  general: 'ทั่วไป',
+  contract: 'จ้างเหมา',
+}
+
 export function DashboardPage({
   theme,
   onToggleTheme,
@@ -30,7 +40,9 @@ export function DashboardPage({
   const { user, signOut } = useAuth()
   const [sport, setSport] = useState<SportType>('football')
   const [filter, setFilter] = useState<StatusFilter>('all')
+  const [view, setView] = useState<'matches' | 'regs'>('matches')
   const [matches, setMatches] = useState<MatchRow[]>([])
+  const [regs, setRegs] = useState<RegistrationRow[]>([])
   const [leadPoints, setLeadPoints] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,9 +52,14 @@ export function DashboardPage({
     setLoading(true)
     setError(null)
     try {
-      const [rows, lead] = await Promise.all([fetchMatches(sport), fetchLeadPoints(sport)])
+      const [rows, lead, registrations] = await Promise.all([
+        fetchMatches(sport),
+        fetchLeadPoints(sport),
+        fetchRegistrations(sport),
+      ])
       setMatches(rows)
       setLeadPoints(lead)
+      setRegs(registrations)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'โหลดข้อมูลไม่สำเร็จ')
     } finally {
@@ -123,67 +140,107 @@ export function DashboardPage({
         ))}
       </div>
 
-      <div className="card-grid">
-        <button
-          type="button"
-          className={`stat-card live${filter === 'live' ? ' active' : ''}`}
-          onClick={() => setFilter((f) => (f === 'live' ? 'all' : 'live'))}
-        >
-          <span className="label">ถ่ายทอดสด</span>
-          <span className="value">{counts.live}</span>
+      <div className="sport-toggle" style={{ marginTop: 8 }}>
+        <button type="button" className={view === 'matches' ? 'active' : ''} onClick={() => setView('matches')}>
+          แมตช์
         </button>
-        <button
-          type="button"
-          className={`stat-card${filter === 'finished' ? ' active' : ''}`}
-          onClick={() => setFilter((f) => (f === 'finished' ? 'all' : 'finished'))}
-        >
-          <span className="label">จบแล้ว</span>
-          <span className="value">{counts.finished}</span>
-        </button>
-        <button
-          type="button"
-          className={`stat-card${filter === 'scheduled' ? ' active' : ''}`}
-          onClick={() => setFilter((f) => (f === 'scheduled' ? 'all' : 'scheduled'))}
-        >
-          <span className="label">กำหนดการ</span>
-          <span className="value">{counts.scheduled}</span>
-        </button>
-        <button type="button" className="stat-card" onClick={() => setFilter('all')}>
-          <span className="label">คะแนนนำ</span>
-          <span className="value">{leadPoints ?? '—'}</span>
+        <button type="button" className={view === 'regs' ? 'active' : ''} onClick={() => setView('regs')}>
+          ลงทะเบียน ({regs.length})
         </button>
       </div>
 
-      {loading && <div className="loading">กำลังโหลดแมตช์…</div>}
-      {error && <div className="error">{error}</div>}
-      {!loading && !error && visible.length === 0 && (
-        <div className="empty">ไม่มีแมตช์ในตัวกรองนี้</div>
+      {view === 'matches' ? (
+        <>
+          <div className="card-grid">
+            <button
+              type="button"
+              className={`stat-card live${filter === 'live' ? ' active' : ''}`}
+              onClick={() => setFilter((f) => (f === 'live' ? 'all' : 'live'))}
+            >
+              <span className="label">ถ่ายทอดสด</span>
+              <span className="value">{counts.live}</span>
+            </button>
+            <button
+              type="button"
+              className={`stat-card${filter === 'finished' ? ' active' : ''}`}
+              onClick={() => setFilter((f) => (f === 'finished' ? 'all' : 'finished'))}
+            >
+              <span className="label">จบแล้ว</span>
+              <span className="value">{counts.finished}</span>
+            </button>
+            <button
+              type="button"
+              className={`stat-card${filter === 'scheduled' ? ' active' : ''}`}
+              onClick={() => setFilter((f) => (f === 'scheduled' ? 'all' : 'scheduled'))}
+            >
+              <span className="label">กำหนดการ</span>
+              <span className="value">{counts.scheduled}</span>
+            </button>
+            <button type="button" className="stat-card" onClick={() => setFilter('all')}>
+              <span className="label">คะแนนนำ</span>
+              <span className="value">{leadPoints ?? '—'}</span>
+            </button>
+          </div>
+
+          {loading && <div className="loading">กำลังโหลดแมตช์…</div>}
+          {error && <div className="error">{error}</div>}
+          {!loading && !error && visible.length === 0 && (
+            <div className="empty">ไม่มีแมตช์ในตัวกรองนี้</div>
+          )}
+
+          <div className="match-list">
+            {visible.map((m) => (
+              <button key={m.id} type="button" className="match-row" onClick={() => setEditingId(m.id)}>
+                <div className="teams">
+                  <div className="team-line">
+                    <span>{teamName(m.home)}</span>
+                    <span className="score">{m.home_score}</span>
+                  </div>
+                  <div className="team-line">
+                    <span>{teamName(m.away)}</span>
+                    <span className="score">{m.away_score}</span>
+                  </div>
+                </div>
+                <div className="meta">
+                  <span className={badgeClass(m.status)}>{STATUS_LABELS[m.status]}</span>
+                  <span className="clock">
+                    {[m.group_code ? `สาย ${m.group_code}` : m.stage, m.court_label, m.live_clock]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {loading && <div className="loading">กำลังโหลดรายชื่อ…</div>}
+          {error && <div className="error">{error}</div>}
+          {!loading && regs.length === 0 && <div className="empty">ยังไม่มีผู้ลงทะเบียน</div>}
+          <div className="match-list">
+            {regs.map((r) => (
+              <div key={r.id} className="match-row" style={{ cursor: 'default' }}>
+                <div className="teams">
+                  <div className="team-line">
+                    <span>{r.full_name}</span>
+                    <span className="score">{r.age}</span>
+                  </div>
+                  <div className="team-line">
+                    <span>
+                      {r.team?.name_th ?? r.team_id} · {POS_TH[r.position] ?? r.position}
+                      {r.jersey_number ? ` · #${r.jersey_number}` : ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ marginTop: 12, fontSize: 12, color: 'var(--muted)' }}>
+            เสมอกันในตาราง → จับฉลาก แล้วปรับอันดับในฐานข้อมูล (lottery_note)
+          </p>
+        </>
       )}
-
-      <div className="match-list">
-        {visible.map((m) => (
-          <button key={m.id} type="button" className="match-row" onClick={() => setEditingId(m.id)}>
-            <div className="teams">
-              <div className="team-line">
-                <span>{teamName(m.home)}</span>
-                <span className="score">{m.home_score}</span>
-              </div>
-              <div className="team-line">
-                <span>{teamName(m.away)}</span>
-                <span className="score">{m.away_score}</span>
-              </div>
-            </div>
-            <div className="meta">
-              <span className={badgeClass(m.status)}>{STATUS_LABELS[m.status]}</span>
-              {(m.live_clock || m.period_label) && (
-                <span className="clock">
-                  {[m.period_label, m.live_clock].filter(Boolean).join(' · ')}
-                </span>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
     </div>
   )
 }
