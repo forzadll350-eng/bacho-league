@@ -5,7 +5,7 @@ import { StandingsTable } from '../components/StandingsTable'
 import { MatchCard } from '../components/MatchCard'
 
 export function StandingsPage() {
-  const { page, data } = useApp()
+  const { page, data, sport } = useApp()
 
   const groupA = useMemo(
     () => data.table.filter((r) => r.groupCode === 'A').sort((a, b) => a.rank - b.rank),
@@ -28,6 +28,7 @@ export function StandingsPage() {
 
   const rowsA = groupA.length ? groupA : data.table.slice(0, 4)
   const rowsB = groupB.length ? groupB : data.table.slice(4, 8)
+  const isVolleyball = sport === 'volleyball'
 
   return (
     <section className={`page${page === 'standings' ? ' active' : ''}`} id="page-standings">
@@ -54,17 +55,26 @@ export function StandingsPage() {
       </div>
       <div className="card knockout-board">
         <div className="knockout-path">
-          <div className="knockout-step">
-            <span className="knockout-label">รองฯ</span>
-            <p>A1 พบ B2 · A2 พบ B1</p>
-          </div>
-          <div className="knockout-arrow" aria-hidden>
-            →
-          </div>
-          <div className="knockout-step">
-            <span className="knockout-label">นัดชิง</span>
-            <p>ผู้ชนะรองฯ พบกัน</p>
-          </div>
+          {isVolleyball ? (
+            <div className="knockout-step">
+              <span className="knockout-label">นัดชิง</span>
+              <p>ที่ 1 สาย A พบ ที่ 1 สาย B · ยังไม่รู้ทีมจนกว่าจบสาย</p>
+            </div>
+          ) : (
+            <>
+              <div className="knockout-step">
+                <span className="knockout-label">รองฯ</span>
+                <p>A1 พบ B2 · A2 พบ B1 · ยังไม่รู้ทีมจนกว่าจบสาย</p>
+              </div>
+              <div className="knockout-arrow" aria-hidden>
+                →
+              </div>
+              <div className="knockout-step">
+                <span className="knockout-label">นัดชิง</span>
+                <p>ผู้ชนะรองฯ พบกัน</p>
+              </div>
+            </>
+          )}
         </div>
         {knockout.length ? (
           <div className="knockout-matches">

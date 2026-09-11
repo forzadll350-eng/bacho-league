@@ -68,6 +68,58 @@ export const TEAMS: Record<string, Team> = {
   },
 }
 
+/** Placeholder slots · ไม่ใส่ใน TEAM_LIST (ลงทะเบียน) */
+export const SLOT_TEAMS: Record<string, Team> = {
+  slotA1: {
+    id: 'slot-a1',
+    nameTh: 'ที่ 1 สาย A',
+    nameEn: 'Group A #1',
+    shortName: 'A1',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลสาย',
+  },
+  slotA2: {
+    id: 'slot-a2',
+    nameTh: 'ที่ 2 สาย A',
+    nameEn: 'Group A #2',
+    shortName: 'A2',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลสาย',
+  },
+  slotB1: {
+    id: 'slot-b1',
+    nameTh: 'ที่ 1 สาย B',
+    nameEn: 'Group B #1',
+    shortName: 'B1',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลสาย',
+  },
+  slotB2: {
+    id: 'slot-b2',
+    nameTh: 'ที่ 2 สาย B',
+    nameEn: 'Group B #2',
+    shortName: 'B2',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลสาย',
+  },
+  slotSf1: {
+    id: 'slot-sf1',
+    nameTh: 'ผู้ชนะรองฯ 1',
+    nameEn: 'SF1 Winner',
+    shortName: 'SF1',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลรองฯ',
+  },
+  slotSf2: {
+    id: 'slot-sf2',
+    nameTh: 'ผู้ชนะรองฯ 2',
+    nameEn: 'SF2 Winner',
+    shortName: 'SF2',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลรองฯ',
+  },
+}
+
 /** ลำดับตามที่กำหนด */
 export const TEAM_LIST: Team[] = [
   TEAMS.lubosawo,

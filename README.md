@@ -14,7 +14,7 @@ npm run dev
 
 เปิด http://localhost:5173/
 
-ตอนนี้ถ้ายังไม่มี `.env` จะใช้ **mock data** (Demo Feed)
+ถ้ายังไม่มี `.env` แอปจะแสดงสถานะว่าง (Offline) — ไม่ใช้ข้อมูลจำลอง
 
 ### Admin (`/admin`)
 

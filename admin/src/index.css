@@ -485,3 +485,29 @@ button {
   align-items: center;
   gap: 6px;
 }
+
+.goal-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 70px 1.4fr 36px;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.goal-edit-row input,
+.goal-edit-row select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  padding: 8px;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 720px) {
+  .goal-edit-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

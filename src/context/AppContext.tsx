@@ -7,11 +7,11 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { MOCK } from '../data/mock'
 import {
   isSupabaseConfigured,
   loadSportBundle,
   subscribeSportUpdates,
+  emptyBundle,
 } from '../api/sportsApi'
 import type { AppPage, SportBundle, SportType, ThemeMode } from '../types/sports'
 
@@ -19,7 +19,6 @@ const THEME_KEY = 'bacho-league-theme'
 
 function readStoredTheme(): ThemeMode {
   try {
-    // First open / no preference → dark (standard for this app)
     if (localStorage.getItem(THEME_KEY) === 'light') return 'light'
   } catch {
     /* ignore */
@@ -43,22 +42,10 @@ interface AppContextValue {
   data: SportBundle
   loading: boolean
   usingLiveData: boolean
-  detailOpen: boolean
-  openDetail: () => void
-  closeDetail: () => void
   notifOpen: boolean
   openNotif: () => void
   closeNotif: () => void
-  streamOpen: boolean
-  openStream: () => void
-  closeStream: () => void
   updateText: string
-  liveTab: 'events' | 'stats' | 'table'
-  setLiveTab: (tab: 'events' | 'stats' | 'table') => void
-  detailTab: 'events' | 'stats' | 'lineup'
-  setDetailTab: (tab: 'events' | 'stats' | 'lineup') => void
-  fixturesTab: 'today' | 'upcoming' | 'results'
-  setFixturesTab: (tab: 'today' | 'upcoming' | 'results') => void
   homeGroup: 'A' | 'B'
   setHomeGroup: (group: 'A' | 'B') => void
   refresh: () => void
@@ -74,22 +61,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     applyTheme(initial)
     return initial
   })
-  const [data, setData] = useState<SportBundle>(MOCK.football)
+  const [data, setData] = useState<SportBundle>(() => emptyBundle('football'))
   const [loading, setLoading] = useState(true)
-  const [detailOpen, setDetailOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
-  const [streamOpen, setStreamOpen] = useState(false)
   const [updateSeconds, setUpdateSeconds] = useState(0)
-  const [liveTab, setLiveTab] = useState<'events' | 'stats' | 'table'>('events')
-  const [detailTab, setDetailTab] = useState<'events' | 'stats' | 'lineup'>('events')
-  const [fixturesTab, setFixturesTab] = useState<'today' | 'upcoming' | 'results'>('today')
   const [homeGroup, setHomeGroup] = useState<'A' | 'B'>('A')
   const [reloadToken, setReloadToken] = useState(0)
 
   const setSport = useCallback((next: SportType) => {
     setSportState(next)
-    setLiveTab('events')
-    setDetailTab('events')
   }, [])
 
   const setPage = useCallback((next: AppPage) => {
@@ -107,31 +87,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const openDetail = useCallback(() => {
-    setStreamOpen(false)
-    setDetailOpen(true)
-    document.body.style.overflow = 'hidden'
-  }, [])
-
-  const closeDetail = useCallback(() => {
-    setDetailOpen(false)
-    if (!streamOpen) document.body.style.overflow = ''
-  }, [streamOpen])
-
   const openNotif = useCallback(() => setNotifOpen(true), [])
   const closeNotif = useCallback(() => setNotifOpen(false), [])
-
-  const openStream = useCallback(() => {
-    setNotifOpen(false)
-    setStreamOpen(true)
-    document.body.style.overflow = 'hidden'
-  }, [])
-
-  const closeStream = useCallback(() => {
-    setStreamOpen(false)
-    if (!detailOpen) document.body.style.overflow = ''
-  }, [detailOpen])
-
   const refresh = useCallback(() => setReloadToken((n) => n + 1), [])
 
   useEffect(() => {
@@ -179,22 +136,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       data,
       loading,
       usingLiveData: isSupabaseConfigured,
-      detailOpen,
-      openDetail,
-      closeDetail,
       notifOpen,
       openNotif,
       closeNotif,
-      streamOpen,
-      openStream,
-      closeStream,
       updateText,
-      liveTab,
-      setLiveTab,
-      detailTab,
-      setDetailTab,
-      fixturesTab,
-      setFixturesTab,
       homeGroup,
       setHomeGroup,
       refresh,
@@ -208,19 +153,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       data,
       loading,
-      detailOpen,
-      openDetail,
-      closeDetail,
       notifOpen,
       openNotif,
       closeNotif,
-      streamOpen,
-      openStream,
-      closeStream,
       updateText,
-      liveTab,
-      detailTab,
-      fixturesTab,
       homeGroup,
       refresh,
     ],

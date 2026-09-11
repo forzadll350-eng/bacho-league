@@ -33,6 +33,7 @@ export interface MatchRow {
   court_label: string | null
   updated_at: string
   scheduled_at: string
+  ends_at: string | null
   venue: string | null
   home_team_id: string
   away_team_id: string
@@ -47,12 +48,14 @@ export interface MatchUpdate {
   live_clock: string | null
   period_label: string | null
   live_stream_url: string | null
+  scheduled_at?: string
+  ends_at?: string | null
   updated_at: string
 }
 
 export const STATUS_LABELS: Record<MatchStatus, string> = {
-  scheduled: 'กำหนดการ',
-  live: 'ถ่ายทอดสด',
+  scheduled: 'รอแข่ง',
+  live: 'กำลังแข่ง',
   halftime: 'พักครึ่ง',
   finished: 'จบแล้ว',
   postponed: 'เลื่อน',

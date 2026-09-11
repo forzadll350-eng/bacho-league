@@ -3,28 +3,26 @@ import { useApp } from '../context/AppContext'
 import { MatchCard } from '../components/MatchCard'
 import type { Match } from '../types/sports'
 
-type GroupFilter = 'all' | 'A' | 'B' | 'knockout'
+type GroupFilter = 'all' | 'A' | 'B'
 
 function byTime(a: Match, b: Match) {
   return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
 }
 
 export function MatchesPage() {
-  const { page, data, fixturesTab, setFixturesTab } = useApp()
+  const { page, data } = useApp()
   const [groupTab, setGroupTab] = useState<GroupFilter>('all')
 
   const filtered = useMemo(() => {
     return data.matches
       .filter((m) => {
-        if (fixturesTab === 'upcoming' && m.status !== 'scheduled') return false
-        if (fixturesTab === 'results' && m.status !== 'finished') return false
+        if (m.stage === 'semi' || m.stage === 'final') return false
         if (groupTab === 'A') return m.groupCode === 'A'
         if (groupTab === 'B') return m.groupCode === 'B'
-        if (groupTab === 'knockout') return m.stage === 'semi' || m.stage === 'final'
         return true
       })
       .sort(byTime)
-  }, [data.matches, fixturesTab, groupTab])
+  }, [data.matches, groupTab])
 
   const sections = useMemo(() => {
     if (groupTab !== 'all') {
@@ -32,11 +30,9 @@ export function MatchesPage() {
     }
     const a = filtered.filter((m) => m.groupCode === 'A')
     const b = filtered.filter((m) => m.groupCode === 'B')
-    const k = filtered.filter((m) => m.stage === 'semi' || m.stage === 'final')
     return [
       { key: 'A', title: 'สาย A · สนาม A', items: a },
       { key: 'B', title: 'สาย B · สนาม B', items: b },
-      { key: 'K', title: 'รอบชิง (รองฯ → นัดชิง)', items: k },
     ]
   }, [filtered, groupTab])
 
@@ -49,34 +45,12 @@ export function MatchesPage() {
         </div>
       </div>
 
-      <div className="seg" role="tablist">
-        {(
-          [
-            ['today', 'ทั้งหมด'],
-            ['upcoming', 'ยังไม่แข่ง'],
-            ['results', 'ผลแล้ว'],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            className={fixturesTab === id ? 'active' : ''}
-            aria-selected={fixturesTab === id}
-            onClick={() => setFixturesTab(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="seg seg-quad group-seg" role="tablist">
+      <div className="seg seg-trio" role="tablist" aria-label="เลือกสาย">
         {(
           [
             ['all', 'ทุกสาย'],
             ['A', 'สาย A'],
             ['B', 'สาย B'],
-            ['knockout', 'รอบชิง'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -94,7 +68,7 @@ export function MatchesPage() {
 
       {sections.every((s) => s.items.length === 0) ? (
         <div className="card" style={{ padding: 16, color: 'var(--muted)', fontSize: 13 }}>
-          ไม่มีรายการในหมวดนี้
+          ไม่มีรายการในหมวดนี้ · รอบรอง/รอบชิงดูที่ตารางคะแนน
         </div>
       ) : (
         sections.map((section) =>

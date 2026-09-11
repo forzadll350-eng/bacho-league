@@ -23,16 +23,22 @@ export function NotificationSheet() {
           </button>
         </div>
         <div>
-          {data.notifications.map((n) => (
-            <div className="notification" key={n.id}>
-              <div className="nicon">{n.icon}</div>
-              <div>
-                <b>{n.title}</b>
-                <p>{n.body}</p>
-              </div>
-              <span className="ntime">{n.timeLabel}</span>
+          {data.notifications.length === 0 ? (
+            <div className="lt-empty" style={{ padding: '1rem' }}>
+              ยังไม่มีการแจ้งเตือน
             </div>
-          ))}
+          ) : (
+            data.notifications.map((n) => (
+              <div className="notification" key={n.id}>
+                <div className="nicon">{n.icon}</div>
+                <div>
+                  <b>{n.title}</b>
+                  <p>{n.body}</p>
+                </div>
+                <span className="ntime">{n.timeLabel}</span>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </>

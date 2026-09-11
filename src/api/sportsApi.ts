@@ -1,14 +1,17 @@
 import type {
   AppNotification,
+  LiveHeroData,
   Match,
+  MatchGoal,
   MatchStatus,
   SportBundle,
   SportType,
   StandingRow,
   Team,
+  TopScorer,
+  VoteCandidate,
 } from '../types/sports'
-import { MOCK } from '../data/mock'
-import { TEAMS } from '../data/teams'
+import { LEAGUE, SLOT_TEAMS, TEAMS } from '../data/teams'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 
 type DbTeam = {
@@ -28,6 +31,7 @@ type DbMatch = {
   home_team_id: string
   away_team_id: string
   scheduled_at: string
+  ends_at: string | null
   venue: string | null
   status: MatchStatus
   home_score: number
@@ -65,6 +69,71 @@ type DbNotification = {
   time_label: string
 }
 
+type DbGoal = {
+  id: string
+  match_id: string
+  team_id: string
+  jersey_number: string
+  minute_approx: number | null
+  registration_id: string | null
+  player_name: string | null
+}
+
+type DbRegistration = {
+  id: string
+  sport: SportType
+  team_id: string
+  full_name: string
+  jersey_number: string | null
+  photo_url: string | null
+}
+
+type DbVote = {
+  registration_id: string
+}
+
+function placeholderTeam(): Team {
+  return {
+    id: 'tbd',
+    nameTh: 'รอคู่แข่ง',
+    nameEn: 'TBD',
+    shortName: '—',
+    crestUrl: LEAGUE.crestUrl,
+    orgTh: '—',
+  }
+}
+
+export function emptyBundle(sport: SportType): SportBundle {
+  const label = sport === 'football' ? 'ฟุตซอล' : 'วอลเลย์บอลหญิง'
+  return {
+    homeSub: `21 ก.ย. 2569 · ${label}`,
+    liveSub: 'ยังไม่มีการแข่งขันสด',
+    hero: {
+      league: `${label} · สายใยสัมพันธ์ 2569`,
+      home: placeholderTeam(),
+      away: placeholderTeam(),
+      score: '—',
+      state: 'รอข้อมูลจากสนาม',
+      clock: '—',
+      stats: [],
+    },
+    matches: [],
+    quick: [
+      ['0', 'จบแล้ว'],
+      ['0', 'รอแข่งขัน'],
+      ['0', 'คะแนนทีมนำ'],
+      ['0', 'ประตูรวม'],
+    ],
+    events: [],
+    stats: [],
+    table: [],
+    lineup: [],
+    notifications: [],
+    topScorers: [],
+    voteCandidates: [],
+  }
+}
+
 function mapTeam(row: DbTeam): Team {
   return {
     id: row.id,
@@ -81,6 +150,8 @@ function teamById(map: Map<string, Team>, id: string): Team {
   if (fromMap) return fromMap
   const fromLocal = Object.values(TEAMS).find((t) => t.id === id)
   if (fromLocal) return fromLocal
+  const fromSlot = Object.values(SLOT_TEAMS).find((t) => t.id === id)
+  if (fromSlot) return fromSlot
   return {
     id,
     nameTh: id,
@@ -91,22 +162,61 @@ function teamById(map: Map<string, Team>, id: string): Team {
   }
 }
 
-function mapMatch(row: DbMatch, teams: Map<string, Team>): Match {
+/** ทีมปลอมที่เคยใส่ในรอบรอง/ชิง — แสดงเป็น slot จนกว่า DB จะอัปเดต / แอดมินใส่ทีมจริง */
+const LEGACY_KNOCKOUT_PLACEHOLDERS: Record<string, [string, string]> = {
+  'fb-sf-1': ['tonsai', 'palukasamoh'],
+  'fb-sf-2': ['barehtai', 'bacho-municipal'],
+  'fb-final': ['tonsai', 'barehtai'],
+  'vb-final': ['bacho-sao', 'kayoh-mati'],
+}
+
+const KNOCKOUT_SLOTS: Record<string, [string, string]> = {
+  'fb-sf-1': ['slot-a1', 'slot-b2'],
+  'fb-sf-2': ['slot-a2', 'slot-b1'],
+  'fb-final': ['slot-sf1', 'slot-sf2'],
+  'vb-final': ['slot-a1', 'slot-b1'],
+}
+
+function resolveKnockoutTeamIds(row: DbMatch): { homeId: string; awayId: string } {
+  const slots = KNOCKOUT_SLOTS[row.id]
+  if (!slots) return { homeId: row.home_team_id, awayId: row.away_team_id }
+  if (row.home_team_id.startsWith('slot-') || row.away_team_id.startsWith('slot-')) {
+    return { homeId: row.home_team_id, awayId: row.away_team_id }
+  }
+  const legacy = LEGACY_KNOCKOUT_PLACEHOLDERS[row.id]
+  if (
+    legacy &&
+    row.home_team_id === legacy[0] &&
+    row.away_team_id === legacy[1] &&
+    row.status === 'scheduled'
+  ) {
+    return { homeId: slots[0], awayId: slots[1] }
+  }
+  return { homeId: row.home_team_id, awayId: row.away_team_id }
+}
+
+function mapMatch(
+  row: DbMatch,
+  teams: Map<string, Team>,
+  goalsByMatch: Map<string, MatchGoal[]>,
+): Match {
+  const { homeId, awayId } = resolveKnockoutTeamIds(row)
   return {
     id: row.id,
     sport: row.sport,
     competitionId: row.competition_id,
     seasonId: row.season_id,
-    homeTeam: teamById(teams, row.home_team_id),
-    awayTeam: teamById(teams, row.away_team_id),
+    homeTeam: teamById(teams, homeId),
+    awayTeam: teamById(teams, awayId),
     scheduledAt: row.scheduled_at,
+    endsAt: row.ends_at ?? undefined,
     venue: row.venue ?? undefined,
     status: row.status,
     homeScore: row.home_score,
     awayScore: row.away_score,
     liveClock: row.live_clock ?? undefined,
     periodLabel: row.period_label ?? undefined,
-    detail: row.detail,
+    detail: false,
     liveStreamUrl: row.live_stream_url ?? undefined,
     groupCode: row.group_code === 'A' || row.group_code === 'B' ? row.group_code : undefined,
     stage:
@@ -114,6 +224,7 @@ function mapMatch(row: DbMatch, teams: Map<string, Team>): Match {
         ? row.stage
         : undefined,
     courtLabel: row.court_label ?? undefined,
+    goals: goalsByMatch.get(row.id) ?? [],
   }
 }
 
@@ -149,20 +260,40 @@ function liveMatch(matches: Match[]): Match | undefined {
   return matches.find((m) => m.status === 'live' || m.status === 'halftime') ?? matches[0]
 }
 
-function buildHero(sport: SportType, match: Match | undefined) {
-  const base = MOCK[sport]
-  if (!match) return base.hero
+function buildHero(sport: SportType, match: Match | undefined): LiveHeroData {
+  const label = sport === 'football' ? 'ฟุตซอล' : 'วอลเลย์บอลหญิง'
+  if (!match) {
+    return emptyBundle(sport).hero
+  }
 
-  return {
-    ...base.hero,
+  const live = match.status === 'live' || match.status === 'halftime'
+  const common: LiveHeroData = {
+    league: [label, match.groupCode ? `สาย ${match.groupCode}` : match.stage, match.courtLabel]
+      .filter(Boolean)
+      .join(' · '),
     home: match.homeTeam,
     away: match.awayTeam,
-    score: `${match.homeScore}–${match.awayScore}`,
-    state: match.periodLabel ?? (match.status === 'live' ? 'กำลังแข่งขัน' : match.status),
-    clock: match.liveClock ?? (sport === 'volleyball' ? 'SET' : 'LIVE'),
-    league: base.hero.league,
+    score: `${match.homeScore} - ${match.awayScore}`,
+    state:
+      match.periodLabel ??
+      (live ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
+    clock: match.liveClock ?? (live ? 'LIVE' : match.courtLabel ?? '—'),
     liveStreamUrl: match.liveStreamUrl,
+    stats: [],
   }
+
+  if (sport === 'volleyball') {
+    return {
+      ...common,
+      stats: [
+        [`${match.homeScore} - ${match.awayScore}`, 'เซต'],
+        [match.periodLabel ?? '—', 'สถานะ'],
+        ['15', 'แต้มต่อเซต'],
+      ],
+    }
+  }
+
+  return common
 }
 
 function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): StandingRow[] {
@@ -191,35 +322,76 @@ function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): Stand
   })
 }
 
+function buildTopScorers(matches: Match[]): TopScorer[] {
+  const map = new Map<string, TopScorer>()
+  for (const m of matches) {
+    for (const g of m.goals ?? []) {
+      const key = `${g.teamId}:${g.jerseyNumber}`
+      const prev = map.get(key)
+      if (prev) {
+        prev.goals += 1
+        if (!prev.playerName && g.playerName) prev.playerName = g.playerName
+        if (!prev.photoUrl && g.photoUrl) prev.photoUrl = g.photoUrl
+        if (!prev.registrationId && g.registrationId) prev.registrationId = g.registrationId
+      } else {
+        const team =
+          m.homeTeam.id === g.teamId
+            ? m.homeTeam
+            : m.awayTeam.id === g.teamId
+              ? m.awayTeam
+              : null
+        map.set(key, {
+          key,
+          jerseyNumber: g.jerseyNumber,
+          teamId: g.teamId,
+          teamName: team?.nameTh ?? g.teamId,
+          goals: 1,
+          playerName: g.playerName,
+          photoUrl: g.photoUrl,
+          registrationId: g.registrationId,
+        })
+      }
+    }
+  }
+  return [...map.values()].sort((a, b) => b.goals - a.goals || a.jerseyNumber.localeCompare(b.jerseyNumber))
+}
+
 function mergeBundle(
   sport: SportType,
   matches: Match[],
   table: StandingRow[],
   notifications: AppNotification[],
+  voteCandidates: VoteCandidate[],
 ): SportBundle {
-  const base = MOCK[sport]
-  const live = liveMatch(matches)
-  const liveCount = matches.filter((m) => m.status === 'live' || m.status === 'halftime').length
+  const empty = emptyBundle(sport)
+  const featured = liveMatch(matches)
   const done = matches.filter((m) => m.status === 'finished').length
   const scheduled = matches.filter((m) => m.status === 'scheduled').length
-  const enriched = enrichStandingsWithGoals(table.length ? table : base.table, matches.length ? matches : base.matches)
-  const leadPts = enriched[0]?.points ?? 0
+  const enriched = enrichStandingsWithGoals(table, matches)
+  const leadPts = [...enriched].sort((a, b) => a.rank - b.rank)[0]?.points ?? 0
+  const totalGoals = matches.reduce((sum, m) => sum + m.homeScore + m.awayScore, 0)
+  const topScorers = sport === 'football' ? buildTopScorers(matches) : []
 
   return {
-    ...base,
-    homeSub: base.homeSub,
-    liveSub: live
-      ? `${live.homeTeam.nameTh} พบ ${live.awayTeam.nameTh}`
-      : base.liveSub,
-    hero: buildHero(sport, live),
-    matches: matches.length ? matches : base.matches,
+    ...empty,
+    homeSub: empty.homeSub,
+    liveSub: featured
+      ? `${featured.homeTeam.nameTh} พบ ${featured.awayTeam.nameTh}`
+      : empty.liveSub,
+    hero: buildHero(sport, featured),
+    matches,
     table: enriched,
-    notifications: notifications.length ? notifications : base.notifications,
+    notifications,
+    events: [],
+    stats: [],
+    lineup: [],
+    topScorers,
+    voteCandidates: sport === 'football' ? voteCandidates : [],
     quick: [
-      [String(liveCount), 'กำลังแข่งขัน'],
       [String(done), 'จบแล้ว'],
       [String(scheduled), 'รอแข่งขัน'],
       [String(leadPts), 'คะแนนทีมนำ'],
+      [String(totalGoals), 'ประตูรวม'],
     ],
   }
 }
@@ -229,46 +401,109 @@ async function fetchFromSupabase(sport: SportType): Promise<SportBundle> {
 
   const seasonId = sport === 'football' ? 'season-2569-fb' : 'season-2569-vb'
 
-  const [teamsRes, matchesRes, standingsRes, notifRes] = await Promise.all([
-    supabase.from('teams').select('*').order('sort_order'),
-    supabase
-      .from('matches')
-      .select('*')
-      .eq('sport', sport)
-      .order('scheduled_at', { ascending: true }),
-    supabase
-      .from('standings')
-      .select('*')
-      .eq('sport', sport)
-      .eq('season_id', seasonId)
-      .order('rank', { ascending: true }),
-    supabase.from('notifications').select('*').eq('sport', sport).order('created_at', {
-      ascending: false,
-    }),
-  ])
+  const [teamsRes, matchesRes, standingsRes, notifRes, goalsRes, regsRes, votesRes] =
+    await Promise.all([
+      supabase.from('teams').select('*').order('sort_order'),
+      supabase
+        .from('matches')
+        .select('*')
+        .eq('sport', sport)
+        .order('scheduled_at', { ascending: true }),
+      supabase
+        .from('standings')
+        .select('*')
+        .eq('sport', sport)
+        .eq('season_id', seasonId)
+        .order('rank', { ascending: true }),
+      supabase.from('notifications').select('*').eq('sport', sport).order('created_at', {
+        ascending: false,
+      }),
+      supabase.from('match_goals').select('*').order('created_at', { ascending: true }),
+      supabase
+        .from('registrations')
+        .select('id, sport, team_id, full_name, jersey_number, photo_url')
+        .eq('sport', sport),
+      sport === 'football'
+        ? supabase.from('favorite_votes').select('registration_id').eq('sport', 'football')
+        : Promise.resolve({ data: [] as DbVote[], error: null }),
+    ])
 
   if (teamsRes.error) throw teamsRes.error
   if (matchesRes.error) throw matchesRes.error
   if (standingsRes.error) throw standingsRes.error
   if (notifRes.error) throw notifRes.error
+  // Goals/votes tables may not exist yet on older DBs — treat as empty
+  const goals = goalsRes.error ? [] : ((goalsRes.data ?? []) as DbGoal[])
+  const regs = regsRes.error ? [] : ((regsRes.data ?? []) as DbRegistration[])
+  const votes = votesRes.error ? [] : ((votesRes.data ?? []) as DbVote[])
 
   const teamMap = new Map((teamsRes.data as DbTeam[]).map((t) => [t.id, mapTeam(t)]))
-  const matches = (matchesRes.data as DbMatch[]).map((m) => mapMatch(m, teamMap))
+  const regById = new Map(regs.map((r) => [r.id, r]))
+  const regByTeamJersey = new Map(
+    regs
+      .filter((r) => r.jersey_number)
+      .map((r) => [`${r.team_id}:${r.jersey_number}`, r] as const),
+  )
+
+  const goalsByMatch = new Map<string, MatchGoal[]>()
+  for (const g of goals) {
+    const fromReg = g.registration_id ? regById.get(g.registration_id) : undefined
+    const byJersey = regByTeamJersey.get(`${g.team_id}:${g.jersey_number}`)
+    const linked = fromReg ?? byJersey
+    const mapped: MatchGoal = {
+      id: g.id,
+      matchId: g.match_id,
+      teamId: g.team_id,
+      jerseyNumber: g.jersey_number,
+      minuteApprox: g.minute_approx ?? undefined,
+      playerName: g.player_name ?? linked?.full_name ?? undefined,
+      photoUrl: linked?.photo_url ?? undefined,
+      registrationId: g.registration_id ?? linked?.id,
+    }
+    const list = goalsByMatch.get(g.match_id) ?? []
+    list.push(mapped)
+    goalsByMatch.set(g.match_id, list)
+  }
+
+  const matchIds = new Set((matchesRes.data as DbMatch[]).map((m) => m.id))
+  for (const [mid] of [...goalsByMatch.entries()]) {
+    if (!matchIds.has(mid)) goalsByMatch.delete(mid)
+  }
+
+  const matches = (matchesRes.data as DbMatch[]).map((m) => mapMatch(m, teamMap, goalsByMatch))
   const table = (standingsRes.data as DbStanding[]).map((s) => mapStanding(s, teamMap))
   const notifications = (notifRes.data as DbNotification[]).map(mapNotification)
 
-  return mergeBundle(sport, matches, table, notifications)
+  const voteCount = new Map<string, number>()
+  for (const v of votes) {
+    voteCount.set(v.registration_id, (voteCount.get(v.registration_id) ?? 0) + 1)
+  }
+
+  const voteCandidates: VoteCandidate[] = regs
+    .filter((r) => r.sport === 'football')
+    .map((r) => ({
+      id: r.id,
+      fullName: r.full_name,
+      jerseyNumber: r.jersey_number ?? undefined,
+      teamId: r.team_id,
+      teamName: teamById(teamMap, r.team_id).nameTh,
+      photoUrl: r.photo_url ?? undefined,
+      votes: voteCount.get(r.id) ?? 0,
+    }))
+    .sort((a, b) => b.votes - a.votes || a.fullName.localeCompare(b.fullName, 'th'))
+
+  return mergeBundle(sport, matches, table, notifications, voteCandidates)
 }
 
 export async function loadSportBundle(sport: SportType): Promise<SportBundle> {
   if (!isSupabaseConfigured) {
-    return MOCK[sport]
+    return emptyBundle(sport)
   }
   try {
     return await fetchFromSupabase(sport)
   } catch (err) {
-    console.warn('[sportsApi] Supabase fetch failed, using mock', err)
-    return MOCK[sport]
+    console.warn('[sportsApi] Supabase fetch failed', err)
+    return emptyBundle(sport)
   }
 }
 
@@ -294,6 +529,12 @@ export function subscribeSportUpdates(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'notifications', filter: `sport=eq.${sport}` },
       () => onChange(),
+    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'match_goals' }, () =>
+      onChange(),
+    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'favorite_votes' }, () =>
+      onChange(),
     )
     .subscribe()
 

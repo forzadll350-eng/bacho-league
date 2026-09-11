@@ -9,25 +9,29 @@ import type { LiveHeroData, Match } from '../types/sports'
 function goQuick(
   label: string,
   setPage: ReturnType<typeof useApp>['setPage'],
-  setFixturesTab: ReturnType<typeof useApp>['setFixturesTab'],
 ) {
-  if (label === 'กำลังแข่งขัน') {
-    setPage('live')
-    return
-  }
-  if (label === 'จบแล้ว') {
-    setFixturesTab('results')
+  if (label === 'จบแล้ว' || label === 'รอแข่งขัน') {
     setPage('fixtures')
     return
   }
-  if (label === 'รอแข่งขัน') {
-    setFixturesTab('upcoming')
-    setPage('fixtures')
-    return
-  }
-  if (label === 'คะแนนทีมนำ') {
+  if (label === 'คะแนนทีมนำ' || label === 'ประตูรวม') {
     setPage('standings')
   }
+}
+
+function formatClock(match: Match) {
+  const start = new Date(match.scheduledAt).toLocaleTimeString('th-TH', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+  if (!match.endsAt) return start
+  const end = new Date(match.endsAt).toLocaleTimeString('th-TH', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+  return `${start}–${end}`
 }
 
 function pickGroupMatch(matches: Match[], group: 'A' | 'B'): Match | undefined {
@@ -35,6 +39,7 @@ function pickGroupMatch(matches: Match[], group: 'A' | 'B'): Match | undefined {
   return (
     list.find((m) => m.status === 'live' || m.status === 'halftime') ??
     list.find((m) => m.status === 'scheduled') ??
+    list.find((m) => m.status === 'finished') ??
     list[0]
   )
 }
@@ -47,27 +52,39 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
       state: 'ยังไม่มีนัดในสายนี้',
       clock: `สาย ${group}`,
       score: '—',
+      sets: undefined,
+      stats: [],
     }
   }
-  const live = match.status === 'live' || match.status === 'halftime'
+  const playing = match.status === 'live' || match.status === 'halftime'
+  const { sets: _ignore, ...rest } = base
   return {
-    ...base,
+    ...rest,
     home: match.homeTeam,
     away: match.awayTeam,
-    score: `${match.homeScore}–${match.awayScore}`,
+    score: `${match.homeScore} - ${match.awayScore}`,
     state:
       match.periodLabel ??
-      (live ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
-    clock: match.liveClock ?? (live ? 'LIVE' : match.courtLabel ?? `สาย ${group}`),
-    liveStreamUrl: match.liveStreamUrl,
+      (playing ? 'กำลังแข่ง' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
+    clock: formatClock(match),
+    liveStreamUrl: undefined,
     league: [base.league.split('·')[0]?.trim() || base.league, `สาย ${group}`, match.courtLabel]
       .filter(Boolean)
       .join(' · '),
+    sets: undefined,
+    stats:
+      match.sport === 'volleyball'
+        ? ([
+            [`${match.homeScore} - ${match.awayScore}`, 'เซต'],
+            [match.periodLabel ?? '—', 'สถานะ'],
+            ['15', 'แต้มต่อเซต'],
+          ] as [string, string][])
+        : [],
   }
 }
 
 export function HomePage() {
-  const { page, data, setPage, setFixturesTab, homeGroup, setHomeGroup } = useApp()
+  const { page, data, sport, setPage, homeGroup, setHomeGroup } = useApp()
 
   const featured = useMemo(
     () => pickGroupMatch(data.matches, homeGroup),
@@ -77,16 +94,20 @@ export function HomePage() {
     () => heroForMatch(featured, data.hero, homeGroup),
     [featured, data.hero, homeGroup],
   )
-  const isLive = featured?.status === 'live' || featured?.status === 'halftime'
+  const isPlaying = featured?.status === 'live' || featured?.status === 'halftime'
 
   const groupMatches = useMemo(
-    () => data.matches.filter((m) => m.groupCode === homeGroup).slice(0, 4),
+    () =>
+      data.matches
+        .filter((m) => m.groupCode === homeGroup && m.stage === 'group')
+        .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
     [data.matches, homeGroup],
   )
   const groupTable = useMemo(
     () => data.table.filter((r) => r.groupCode === homeGroup),
     [data.table, homeGroup],
   )
+  const topScorer = data.topScorers[0]
 
   return (
     <section className={`page${page === 'home' ? ' active' : ''}`} id="page-home">
@@ -100,7 +121,7 @@ export function HomePage() {
         </button>
       </div>
 
-      <div className="seg group-seg" role="tablist" aria-label="เลือกสาย">
+      <div className="seg seg-duo" role="tablist" aria-label="เลือกสาย">
         <button
           type="button"
           className={homeGroup === 'A' ? 'active' : ''}
@@ -119,7 +140,15 @@ export function HomePage() {
         </button>
       </div>
 
-      <LiveMatchHero hero={hero} isLive={isLive} />
+      <LiveMatchHero
+        hero={hero}
+        isLive={isPlaying}
+        goals={featured?.goals}
+        homeTeamId={featured?.homeTeam.id}
+        matchId={featured?.id}
+        matchStatus={featured?.status}
+        scheduledAt={featured?.scheduledAt}
+      />
 
       <div className="section-head">
         <h2>การแข่งขันสาย {homeGroup}</h2>
@@ -134,6 +163,43 @@ export function HomePage() {
       ) : (
         groupMatches.map((m) => <MatchCard key={m.id} match={m} />)
       )}
+
+      {sport === 'football' ? (
+        <>
+          <div className="section-head">
+            <h2>ดาวซัลโว</h2>
+          </div>
+          <div className="card top-scorer-card">
+            {topScorer ? (
+              <div className="top-scorer-row">
+                {topScorer.photoUrl ? (
+                  <img src={topScorer.photoUrl} alt="" className="top-scorer-photo" />
+                ) : (
+                  <div className="top-scorer-badge">#{topScorer.jerseyNumber}</div>
+                )}
+                <div>
+                  <b>
+                    {topScorer.playerName ?? `เบอร์ ${topScorer.jerseyNumber}`}
+                  </b>
+                  <p>
+                    {topScorer.teamName} · {topScorer.goals} ประตู
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="lt-empty">ยังไม่มีผู้ยิง — แอดมินจะบันทึกเบอร์เสื้อหลังแข่ง</p>
+            )}
+          </div>
+
+          <button type="button" className="card menu-cta vote-cta" onClick={() => setPage('vote')}>
+            <div>
+              <div className="menu-title">โหวตนักกีฬาขวัญใจ อำเภอบาเจาะ</div>
+              <div className="menu-sub">เลือกได้ 1 คน · จากรายชื่อที่ลงทะเบียนฟุตซอล</div>
+            </div>
+            <div className="chev">›</div>
+          </button>
+        </>
+      ) : null}
 
       <div className="section-head">
         <h2>ตารางคะแนนสาย {homeGroup}</h2>
@@ -152,7 +218,7 @@ export function HomePage() {
             type="button"
             className="card quick quick-btn"
             key={label}
-            onClick={() => goQuick(label, setPage, setFixturesTab)}
+            onClick={() => goQuick(label, setPage)}
           >
             <span>{label}</span>
             <b className="sports-num">{value}</b>

@@ -8,7 +8,7 @@ export type MatchStatus =
   | 'postponed'
   | 'cancelled'
 
-export type AppPage = 'home' | 'live' | 'fixtures' | 'standings' | 'more' | 'register'
+export type AppPage = 'home' | 'fixtures' | 'standings' | 'more' | 'register' | 'vote'
 
 export type ThemeMode = 'dark' | 'light'
 
@@ -62,6 +62,7 @@ export interface Match {
   homeTeam: Team
   awayTeam: Team
   scheduledAt: string
+  endsAt?: string
   venue?: string
   status: MatchStatus
   homeScore: number
@@ -73,6 +74,39 @@ export interface Match {
   groupCode?: 'A' | 'B'
   stage?: MatchStage
   courtLabel?: string
+  goals?: MatchGoal[]
+}
+
+export interface MatchGoal {
+  id: string
+  matchId: string
+  teamId: string
+  jerseyNumber: string
+  minuteApprox?: number
+  playerName?: string
+  photoUrl?: string
+  registrationId?: string
+}
+
+export interface TopScorer {
+  key: string
+  jerseyNumber: string
+  teamId: string
+  teamName: string
+  goals: number
+  playerName?: string
+  photoUrl?: string
+  registrationId?: string
+}
+
+export interface VoteCandidate {
+  id: string
+  fullName: string
+  jerseyNumber?: string
+  teamId: string
+  teamName: string
+  photoUrl?: string
+  votes: number
 }
 
 export interface FootballMatchEvent {
@@ -170,4 +204,6 @@ export interface SportBundle {
   table: StandingRow[]
   lineup: LineupPlayer[]
   notifications: AppNotification[]
+  topScorers: TopScorer[]
+  voteCandidates: VoteCandidate[]
 }

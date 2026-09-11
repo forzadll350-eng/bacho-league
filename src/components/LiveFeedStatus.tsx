@@ -9,7 +9,7 @@ export function LiveFeedStatus() {
         <span className="online" aria-hidden />
         <span>{loading ? 'กำลังโหลด…' : updateText}</span>
       </div>
-      <span className="official">{usingLiveData ? 'Official Feed' : 'Demo Feed'}</span>
+      <span className="official">{usingLiveData ? 'ผลอย่างเป็นทางการ' : 'Offline'}</span>
     </div>
   )
 }
