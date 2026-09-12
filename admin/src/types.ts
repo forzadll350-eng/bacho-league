@@ -40,6 +40,7 @@ export interface MatchRow {
   ends_at: string | null
   venue: string | null
   hide_schedule_time?: boolean
+  match_order: number
   home_team_id: string
   away_team_id: string
   home: TeamRow | null
@@ -60,6 +61,7 @@ export interface MatchUpdate {
   started_at?: string | null
   ends_at?: string | null
   hide_schedule_time?: boolean
+  match_order?: number
   updated_at: string
 }
 

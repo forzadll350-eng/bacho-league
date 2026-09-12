@@ -3,6 +3,7 @@ import { LEAGUE } from '../data/teams'
 import { useApp } from '../context/AppContext'
 import { StandingsTable } from '../components/StandingsTable'
 import { MatchCard } from '../components/MatchCard'
+import { compareMatchOrder } from '../lib/matchOrder'
 
 export function StandingsPage() {
   const { page, data, sport } = useApp()
@@ -19,10 +20,7 @@ export function StandingsPage() {
     () =>
       data.matches
         .filter((m) => m.stage === 'semi' || m.stage === 'final')
-        .sort((a, b) => {
-          const order = { semi: 0, final: 1, group: 2 }
-          return (order[a.stage ?? 'group'] ?? 9) - (order[b.stage ?? 'group'] ?? 9)
-        }),
+        .sort(compareMatchOrder),
     [data.matches],
   )
 

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   fetchMatch,
   fetchMatchGoals,
+  fetchMatches,
   saveMatchState,
   teamName,
   type GoalDraft,
@@ -85,6 +86,8 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   const [startedAt, setStartedAt] = useState<string | null>(null)
   const [endsAt, setEndsAt] = useState('')
   const [hideScheduleTime, setHideScheduleTime] = useState(false)
+  const [matchOrder, setMatchOrder] = useState('1')
+  const [matchOrderLimit, setMatchOrderLimit] = useState(1)
   const [goals, setGoals] = useState<GoalDraft[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -117,6 +120,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         setStartedAt(row.started_at)
         setEndsAt(toLocalInput(row.ends_at))
         setHideScheduleTime(Boolean(row.hide_schedule_time))
+        setMatchOrder(String(row.match_order || 1))
         setGoals(
           goalRows.map((g) => ({
             id: g.id,
@@ -128,12 +132,18 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
           })),
         )
         try {
-          const list = await fetchRegistrations(row.sport)
+          const [list, sportMatches] = await Promise.all([
+            fetchRegistrations(row.sport),
+            fetchMatches(row.sport),
+          ])
           if (!cancelled) {
             setRegs(
               list.filter(
                 (r) => r.team_id === row.home_team_id || r.team_id === row.away_team_id,
               ),
+            )
+            setMatchOrderLimit(
+              sportMatches.filter((candidate) => candidate.group_code === row.group_code).length,
             )
           }
         } catch {
@@ -304,6 +314,15 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
   async function save() {
     if (!match) return
+    const parsedMatchOrder = Number(matchOrder)
+    if (
+      !Number.isInteger(parsedMatchOrder) ||
+      parsedMatchOrder < 1 ||
+      parsedMatchOrder > matchOrderLimit
+    ) {
+      setError(`ลำดับการแข่งขันต้องอยู่ระหว่าง 1–${matchOrderLimit}`)
+      return
+    }
     const startIso = fromLocalInput(scheduledAt)
     if (!startIso) {
       setError('กรุณาตั้งเวลาเริ่มแข่ง')
@@ -340,6 +359,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         started_at: effectiveStartedAt,
         ends_at: fromLocalInput(endsAt),
         hide_schedule_time: hideScheduleTime,
+        match_order: parsedMatchOrder,
         updated_at: new Date().toISOString(),
       }
       let stamped: GoalDraft[] | null = null
@@ -384,6 +404,27 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
       <div className="editor-panel">
         <div className="field">
+          <label htmlFor="match-order">
+            {match.group_code
+              ? `ลำดับการแข่งขันในสาย ${match.group_code}`
+              : 'ลำดับรอบรอง / รอบชิง'}
+          </label>
+          <select
+            id="match-order"
+            value={matchOrder}
+            onChange={(e) => setMatchOrder(e.target.value)}
+          >
+            {Array.from({ length: matchOrderLimit }, (_, index) => index + 1).map((order) => (
+              <option key={order} value={order}>
+                นัดที่ {order}
+              </option>
+            ))}
+          </select>
+          <p className="field-hint">
+            เลือกลำดับใหม่แล้ว คู่ที่อยู่ลำดับนั้นจะสลับตำแหน่งให้อัตโนมัติ
+          </p>
+        </div>
+        <div className="field">
           <label htmlFor="start">เริ่มแข่ง</label>
           <input
             id="start"
@@ -407,7 +448,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
             checked={hideScheduleTime}
             onChange={(e) => setHideScheduleTime(e.target.checked)}
           />
-          <span>ไม่โชว์เวลาตาราง (เช่น 09.00–09.25) — แสดง “กำลังแข่ง” แทน</span>
+          <span>ซ่อนเวลาตารางจากคนดู — แสดง “นัดที่ {matchOrder || '…'}” แทน</span>
         </label>
       </div>
 

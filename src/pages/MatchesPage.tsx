@@ -1,13 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { MatchCard } from '../components/MatchCard'
-import type { Match } from '../types/sports'
+import { compareMatchOrder } from '../lib/matchOrder'
 
 type GroupFilter = 'all' | 'A' | 'B'
-
-function byTime(a: Match, b: Match) {
-  return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-}
 
 export function MatchesPage() {
   const { page, data } = useApp()
@@ -21,7 +17,7 @@ export function MatchesPage() {
         if (groupTab === 'B') return m.groupCode === 'B'
         return true
       })
-      .sort(byTime)
+      .sort(compareMatchOrder)
   }, [data.matches, groupTab])
 
   const sections = useMemo(() => {

@@ -48,6 +48,7 @@ type DbMatch = {
   stage: string | null
   court_label: string | null
   hide_schedule_time?: boolean | null
+  match_order?: number | null
 }
 
 type DbStanding = {
@@ -239,6 +240,7 @@ function mapMatch(
         : undefined,
     courtLabel: row.court_label ?? undefined,
     hideScheduleTime: Boolean(row.hide_schedule_time),
+    matchOrder: row.match_order ?? undefined,
     goals: goalsByMatch.get(row.id) ?? [],
   }
   return base

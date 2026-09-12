@@ -4,6 +4,7 @@ import type { Match } from '../types/sports'
 import { formatElapsedClock, isMatchPlaying } from '../lib/matchClock'
 import { GoalChips } from './GoalChips'
 import { canShareMatch, openMatchShare } from '../lib/matchShare'
+import { matchOrderLabel } from '../lib/matchOrder'
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('th-TH', {
@@ -119,10 +120,11 @@ export function MatchCard({ match }: { match: Match }) {
   const liveClock = useLiveElapsed(match)
   const pts = pointsDisplay(match)
   const shareable = canShareMatch(match)
-  const topTime = match.hideScheduleTime
-    ? 'กำลังแข่งขัน'
-    : liveClock && match.status === 'live'
-      ? liveClock
+  const playing = isMatchPlaying(match.status)
+  const topTime = liveClock && playing
+    ? liveClock
+    : match.hideScheduleTime
+      ? matchOrderLabel(match)
       : timeRange(match)
 
   return (
@@ -130,7 +132,7 @@ export function MatchCard({ match }: { match: Match }) {
       <div className="match-top">
         <span
           className={
-            match.hideScheduleTime || (liveClock && match.status === 'live')
+            playing
               ? 'match-live-clock'
               : undefined
           }

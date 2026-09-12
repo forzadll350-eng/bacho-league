@@ -5,6 +5,7 @@ import { LiveMatchHero } from '../components/LiveMatchHero'
 import { MatchCard } from '../components/MatchCard'
 import { StandingsTable } from '../components/StandingsTable'
 import type { LiveHeroData, Match } from '../types/sports'
+import { compareMatchOrder, matchOrderLabel } from '../lib/matchOrder'
 
 function goQuick(
   label: string,
@@ -35,7 +36,7 @@ function formatClock(match: Match) {
 }
 
 function pickGroupMatch(matches: Match[], group: 'A' | 'B'): Match | undefined {
-  const list = matches.filter((m) => m.groupCode === group)
+  const list = matches.filter((m) => m.groupCode === group).sort(compareMatchOrder)
   return (
     list.find((m) => m.status === 'live' || m.status === 'halftime') ??
     list.find((m) => m.status === 'scheduled') ??
@@ -73,7 +74,7 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
     state:
       match.periodLabel ??
       (playing ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
-    clock: match.hideScheduleTime ? 'กำลังแข่งขัน' : formatClock(match),
+    clock: match.hideScheduleTime ? matchOrderLabel(match) : formatClock(match),
     league: [base.league.split('·')[0]?.trim() || base.league, `สาย ${group}`, match.courtLabel]
       .filter(Boolean)
       .join(' · '),
@@ -106,7 +107,7 @@ export function HomePage() {
     () =>
       data.matches
         .filter((m) => m.groupCode === homeGroup && m.stage === 'group')
-        .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
+        .sort(compareMatchOrder),
     [data.matches, homeGroup],
   )
   const groupTable = useMemo(
@@ -155,6 +156,7 @@ export function HomePage() {
         matchStatus={featured?.status}
         startedAt={featured?.startedAt}
         hideScheduleTime={featured?.hideScheduleTime}
+        matchOrder={featured?.matchOrder}
       />
 
       <div className="section-head">

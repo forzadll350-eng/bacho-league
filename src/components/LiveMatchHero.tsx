@@ -45,6 +45,7 @@ export function LiveMatchHero({
   matchStatus,
   startedAt,
   hideScheduleTime = false,
+  matchOrder,
 }: {
   compact?: boolean
   hero?: LiveHeroData
@@ -55,6 +56,7 @@ export function LiveMatchHero({
   matchStatus?: MatchStatus
   startedAt?: string
   hideScheduleTime?: boolean
+  matchOrder?: number
 }) {
   const { sport, data } = useApp()
   const h = hero ?? data.hero
@@ -68,7 +70,11 @@ export function LiveMatchHero({
   const awayLeading = showLead && scores != null && scores.away > scores.home
 
   const matchClockLabel = useMatchClock(isLive, matchStatus, startedAt, h.clock)
-  const clockLabel = hideScheduleTime ? 'กำลังแข่งขัน' : matchClockLabel
+  const clockLabel = playing
+    ? matchClockLabel
+    : hideScheduleTime
+      ? matchOrder ? `นัดที่ ${matchOrder}` : 'ไม่ระบุเวลา'
+      : matchClockLabel
 
   return (
     <article className={`hero google-hero${isV ? ' volleyball' : ''}${compact ? ' compact' : ''}`}>

@@ -36,6 +36,7 @@ function sectionBucket(m: MatchRow): 'A' | 'B' | 'knockout' {
 }
 
 function matchOrderKey(m: MatchRow): number {
+  if (Number.isInteger(m.match_order) && m.match_order > 0) return m.match_order
   const fromId = m.id.match(/(\d+)\s*$/)
   if (fromId) return Number(fromId[1])
   const fromLabel = m.period_label?.match(/นัดที่\s*(\d+)/)
@@ -45,10 +46,13 @@ function matchOrderKey(m: MatchRow): number {
 
 function sortMatches(list: MatchRow[]): MatchRow[] {
   return list.slice().sort((a, b) => {
+    const oa = matchOrderKey(a)
+    const ob = matchOrderKey(b)
+    if (oa !== ob) return oa - ob
     const ta = +new Date(a.scheduled_at)
     const tb = +new Date(b.scheduled_at)
     if (ta !== tb) return ta - tb
-    return matchOrderKey(a) - matchOrderKey(b)
+    return a.id.localeCompare(b.id)
   })
 }
 
@@ -89,7 +93,7 @@ function buildSections(matches: MatchRow[], groupFilter: GroupFilter): MatchSect
 }
 
 function formatSchedule(m: MatchRow): string {
-  if (m.hide_schedule_time) return 'กำลังแข่ง'
+  if (m.hide_schedule_time) return `นัดที่ ${matchOrderKey(m)}`
   const d = new Date(m.scheduled_at)
   if (Number.isNaN(d.getTime())) return '—'
   return d.toLocaleTimeString('th-TH', {
@@ -307,7 +311,7 @@ export function DashboardPage({
                   onClick={() => setEditingId(m.id)}
                 >
                   <div className="match-ord">
-                    <span className="match-ord-num">{index + 1}</span>
+                    <span className="match-ord-num">{m.match_order || index + 1}</span>
                   </div>
                   <div className="teams">
                     <div className="team-line">

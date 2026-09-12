@@ -85,6 +85,8 @@ export interface Match {
   periodLabel?: string
   detail?: boolean
   hideScheduleTime?: boolean
+  /** Display order within its group; knockout matches share one sequence */
+  matchOrder?: number
   groupCode?: 'A' | 'B'
   stage?: MatchStage
   courtLabel?: string
