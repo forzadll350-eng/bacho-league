@@ -1,0 +1,314 @@
+/* Hallmark · component: scorer dialog · genre: modern-minimal · theme: existing admin system
+ * states: default · hover · focus · active · disabled · loading · error · success
+ * contrast: uses the existing verified admin tokens
+ */
+
+.scorer-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(440px, calc(100% - 24px));
+  max-width: none;
+  height: fit-content;
+  max-height: min(88dvh, 720px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.scorer-dialog::backdrop {
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.scorer-dialog__sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 720px);
+  background: var(--panel);
+}
+
+.scorer-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.scorer-dialog__header p,
+.scorer-dialog__header h2,
+.scorer-dialog__header span {
+  margin: 0;
+}
+
+.scorer-dialog__header p {
+  color: var(--live);
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.scorer-dialog__header h2 {
+  margin-top: 3px;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.scorer-dialog__header span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.scorer-dialog__close,
+.scorer-dialog__undo,
+.scorer-candidate,
+.scorer-manual button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+}
+
+.scorer-dialog__close {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.scorer-search,
+.scorer-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-inline: 18px;
+}
+
+.scorer-search {
+  padding-top: 14px;
+}
+
+.scorer-search__label,
+.scorer-manual > label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.scorer-search__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding-inline: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.scorer-search__control input,
+.scorer-manual input {
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.scorer-search__control input {
+  flex: 1;
+}
+
+.scorer-search__control:focus-within {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.scorer-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 92px;
+  max-height: 260px;
+  margin: 12px 0;
+  padding-inline: 18px;
+  overflow-y: auto;
+}
+
+.scorer-candidate {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.scorer-candidate strong {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.scorer-candidate span {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scorer-empty {
+  margin: auto 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.scorer-manual {
+  padding-block: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.scorer-manual__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.scorer-manual input {
+  width: 100%;
+  padding-inline: 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--bg);
+}
+
+.scorer-manual input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.scorer-manual button {
+  padding-inline: 14px;
+  border-radius: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scorer-manual p {
+  min-height: 1lh;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.scorer-manual.is-error input {
+  border-color: var(--danger);
+}
+
+.scorer-manual.is-error p {
+  color: var(--danger);
+}
+
+.scorer-dialog__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+
+.scorer-dialog__actions .btn {
+  min-height: 44px;
+}
+
+.scorer-dialog__undo {
+  padding-inline: 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--danger);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.scorer-dialog button:focus-visible,
+.scorer-dialog input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.scorer-dialog button:active {
+  transform: translateY(1px);
+}
+
+.scorer-dialog button:disabled,
+.scorer-dialog [aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.scorer-dialog .is-loading {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.scorer-dialog .is-success {
+  border-color: var(--green);
+}
+
+.scorer-dialog .is-focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.scorer-dialog .is-active {
+  transform: translateY(1px);
+}
+
+.scorer-dialog .is-error {
+  border-color: var(--danger);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scorer-dialog__close:hover,
+  .scorer-candidate:hover,
+  .scorer-candidate.is-hover,
+  .scorer-manual button:hover {
+    background: var(--chip);
+  }
+}
+
+@media (max-width: 360px) {
+  .scorer-dialog__header,
+  .scorer-search,
+  .scorer-candidates,
+  .scorer-manual,
+  .scorer-dialog__actions {
+    padding-inline: 12px;
+  }
+
+  .scorer-dialog__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scorer-dialog button:active {
+    transform: none;
+  }
+}

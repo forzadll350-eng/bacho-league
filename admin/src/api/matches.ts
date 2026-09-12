@@ -86,7 +86,8 @@ export async function saveMatchState(
   goals: GoalDraft[] | null,
 ): Promise<void> {
   if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
-  const goalPayload = goals?.map((g) => ({
+  const goalPayload =
+    goals?.map((g) => ({
       team_id: g.team_id,
       jersey_number: g.jersey_number.trim(),
       minute_approx: g.minute_approx,

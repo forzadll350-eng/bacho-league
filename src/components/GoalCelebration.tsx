@@ -12,7 +12,7 @@ export type GoalBurstPayload = {
 
 const BURST_MS = 4200
 
-type ScoreSnap = { home: number; away: number; goals: number }
+type ScoreSnap = { home: number; away: number }
 
 function snapMatches(matches: Match[]): Map<string, ScoreSnap> {
   const map = new Map<string, ScoreSnap>()
@@ -20,7 +20,6 @@ function snapMatches(matches: Match[]): Map<string, ScoreSnap> {
     map.set(m.id, {
       home: m.homeScore,
       away: m.awayScore,
-      goals: m.goals?.length ?? 0,
     })
   }
   return map
@@ -36,22 +35,18 @@ function detectBurst(
     const old = prev.get(m.id)
     if (!old) continue
     const scoreUp = m.homeScore + m.awayScore > old.home + old.away
-    const goalsUp = (m.goals?.length ?? 0) > old.goals
-    if (!scoreUp && !goalsUp) continue
+    // Identifying a previously unknown scorer adds a goal row later, but it is
+    // not a new goal and must not replay the celebration.
+    if (!scoreUp) continue
 
     const homeUp = m.homeScore > old.home
     const awayUp = m.awayScore > old.away
     let teamName = m.homeTeam.nameTh
     if (homeUp && !awayUp) teamName = m.homeTeam.nameTh
     else if (awayUp && !homeUp) teamName = m.awayTeam.nameTh
-    else if (goalsUp && m.goals && m.goals.length > 0) {
-      const last = m.goals[m.goals.length - 1]
-      if (last.teamId === m.awayTeam.id) teamName = m.awayTeam.nameTh
-      else if (last.teamId === m.homeTeam.id) teamName = m.homeTeam.nameTh
-    }
 
     return {
-      id: `${m.id}-${m.homeScore}-${m.awayScore}-${m.goals?.length ?? 0}-${Date.now()}`,
+      id: `${m.id}-${m.homeScore}-${m.awayScore}-${Date.now()}`,
       teamName,
       scoreline: `${m.homeScore} - ${m.awayScore}`,
       sport,

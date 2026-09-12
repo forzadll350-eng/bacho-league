@@ -667,24 +667,124 @@ button {
 }
 
 .goal-edit-row-simple {
-  grid-template-columns: 1.1fr 88px minmax(0, 1.6fr) 56px 36px;
+  grid-template-areas:
+    'team jersey remove'
+    'name minute remove';
+  grid-template-columns: minmax(0, 1fr) 90px 44px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel2);
+}
+
+.goal-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goal-pending-count {
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--amber) 42%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--amber) 11%, transparent);
+  color: var(--amber);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-pending-actions {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.goal-pending-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 11px;
+  border: 1px solid color-mix(in srgb, var(--amber) 38%, var(--line));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--amber) 8%, var(--panel));
+  color: var(--ink);
+  text-align: left;
+}
+
+.goal-pending-actions button span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goal-pending-actions button strong {
+  flex: 0 0 auto;
+  color: var(--amber);
+  font-size: 0.74rem;
+}
+
+.goal-team-select {
+  grid-area: team;
+}
+
+.goal-jersey-select {
+  grid-area: jersey;
 }
 
 .goal-locked-name {
+  grid-area: name;
   min-width: 0;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--ink);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.goal-locked-min {
-  font-size: 0.75rem;
-  font-weight: 700;
+.goal-assign-button {
+  min-height: 40px;
+  padding: 7px 9px;
+  border: 1px dashed color-mix(in srgb, var(--amber) 48%, var(--line));
+  border-radius: 9px;
+  background: transparent;
+  color: var(--amber);
+  text-align: left;
+}
+
+.goal-minute-field {
+  grid-area: minute;
+  position: relative;
+  display: block;
+}
+
+.goal-minute-field span {
+  position: absolute;
+  top: 50%;
+  right: 10px;
   color: var(--muted);
-  text-align: center;
+  font-size: 0.78rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.goal-minute-field input {
+  min-height: 40px;
+  padding-right: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-remove-button {
+  grid-area: remove;
+  align-self: stretch;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 0;
 }
 
 .goal-edit-row input,
@@ -699,12 +799,27 @@ button {
   font-size: 0.8rem;
 }
 
+.goal-edit-row input:focus-visible,
+.goal-edit-row select:focus-visible,
+.goal-assign-button:focus-visible,
+.goal-pending-actions button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .goal-assign-button:hover,
+  .goal-pending-actions button:hover {
+    background: var(--chip);
+  }
+}
+
 @media (max-width: 720px) {
   .goal-edit-row {
     grid-template-columns: 1fr 1fr;
   }
 
   .goal-edit-row-simple {
-    grid-template-columns: 1fr 90px;
+    grid-template-columns: minmax(0, 1fr) 90px 44px;
   }
 }

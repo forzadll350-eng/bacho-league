@@ -1,6 +1,10 @@
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import {
+  GoalScorerDialog,
+  type ScorerChoice,
+} from '../components/GoalScorerDialog'
+import {
   fetchMatch,
   fetchMatchGoals,
   fetchMatches,
@@ -31,6 +35,13 @@ const STATUSES: MatchStatus[] = [
 type Props = {
   matchId: string
   onBack: () => void
+}
+
+type ScorerPrompt = {
+  teamId: string
+  goalIndex?: number
+  scoreWasAdded: boolean
+  minute: number
 }
 
 function toLocalInput(iso: string | null | undefined): string {
@@ -89,6 +100,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   const [matchOrder, setMatchOrder] = useState('1')
   const [matchOrderLimit, setMatchOrderLimit] = useState(1)
   const [goals, setGoals] = useState<GoalDraft[]>([])
+  const [scorerPrompt, setScorerPrompt] = useState<ScorerPrompt | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -177,6 +189,39 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     return Math.min(120, Math.max(0, Math.floor((clockNow - start) / 60000)))
   }, [startedAt, clockNow])
 
+  const goalSummary = useMemo(() => {
+    if (!match) {
+      return { homeAssigned: 0, awayAssigned: 0, homeTracked: 0, awayTracked: 0 }
+    }
+    const homeGoals = goals.filter((goal) => goal.team_id === match.home_team_id)
+    const awayGoals = goals.filter((goal) => goal.team_id === match.away_team_id)
+    return {
+      homeAssigned: homeGoals.filter((goal) => jerseyKey(goal.jersey_number)).length,
+      awayAssigned: awayGoals.filter((goal) => jerseyKey(goal.jersey_number)).length,
+      homeTracked: homeGoals.length,
+      awayTracked: awayGoals.length,
+    }
+  }, [goals, match])
+
+  const homePendingScorers = Math.max(0, homeScore - goalSummary.homeAssigned)
+  const awayPendingScorers = Math.max(0, awayScore - goalSummary.awayAssigned)
+  const totalPendingScorers = homePendingScorers + awayPendingScorers
+
+  const scorerCandidates = useMemo(() => {
+    if (!scorerPrompt) return []
+    return regs
+      .filter((registration) => {
+        return registration.team_id === scorerPrompt.teamId && jerseyKey(registration.jersey_number)
+      })
+      .slice()
+      .sort((a, b) => sortJersey(jerseyKey(a.jersey_number), jerseyKey(b.jersey_number)))
+      .map((registration) => ({
+        id: registration.id,
+        name: registration.full_name,
+        jerseyNumber: jerseyKey(registration.jersey_number),
+      }))
+  }, [regs, scorerPrompt])
+
   function regsForTeam(teamId: string) {
     return regs
       .filter((r) => r.team_id === teamId && jerseyKey(r.jersey_number))
@@ -202,18 +247,78 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     }
   }
 
-  function addGoal() {
-    if (!match) return
-    setGoals((prev) => [
-      ...prev,
-      {
-        team_id: match.home_team_id,
-        jersey_number: '',
-        minute_approx: null,
-        player_name: null,
-        registration_id: null,
-      },
-    ])
+  function lastTrackedGoalIndex(teamId: string): number {
+    for (let index = goals.length - 1; index >= 0; index -= 1) {
+      if (goals[index].team_id === teamId && !jerseyKey(goals[index].jersey_number)) return index
+    }
+    for (let index = goals.length - 1; index >= 0; index -= 1) {
+      if (goals[index].team_id === teamId) return index
+    }
+    return -1
+  }
+
+  function removeGoalForScoreDecrease(teamId: string, currentScore: number) {
+    const trackedCount = goals.filter((goal) => goal.team_id === teamId).length
+    if (trackedCount < currentScore) return
+    const index = lastTrackedGoalIndex(teamId)
+    if (index >= 0) removeGoal(index)
+  }
+
+  function openPendingScorer(teamId: string, requestedGoalIndex?: number) {
+    const firstPendingGoalIndex = goals.findIndex(
+      (goal) => goal.team_id === teamId && !jerseyKey(goal.jersey_number),
+    )
+    const goalIndex = requestedGoalIndex ?? firstPendingGoalIndex
+    setScorerPrompt({
+      teamId,
+      goalIndex: goalIndex >= 0 ? goalIndex : undefined,
+      scoreWasAdded: false,
+      minute: goalIndex >= 0 ? (goals[goalIndex].minute_approx ?? liveMinutePreview) : liveMinutePreview,
+    })
+  }
+
+  function chooseScorer(choice: ScorerChoice) {
+    if (!scorerPrompt) return
+    const goal: GoalDraft = {
+      team_id: scorerPrompt.teamId,
+      jersey_number: choice.jerseyNumber,
+      minute_approx: scorerPrompt.minute,
+      player_name: choice.playerName,
+      registration_id: choice.registrationId,
+    }
+    if (scorerPrompt.goalIndex != null) {
+      updateGoal(scorerPrompt.goalIndex, goal)
+    } else {
+      setGoals((prev) => [...prev, goal])
+    }
+    setScorerPrompt(null)
+  }
+
+  function chooseScorerLater() {
+    if (!scorerPrompt) return
+    if (scorerPrompt.scoreWasAdded) {
+      setGoals((prev) => [
+        ...prev,
+        {
+          team_id: scorerPrompt.teamId,
+          jersey_number: '',
+          minute_approx: scorerPrompt.minute,
+          player_name: null,
+          registration_id: null,
+        },
+      ])
+    }
+    setScorerPrompt(null)
+  }
+
+  function undoPromptGoal() {
+    if (!match || !scorerPrompt?.scoreWasAdded) return
+    if (scorerPrompt.teamId === match.home_team_id) {
+      setHomeScore((score) => Math.max(0, score - 1))
+    } else if (scorerPrompt.teamId === match.away_team_id) {
+      setAwayScore((score) => Math.max(0, score - 1))
+    }
+    setScorerPrompt(null)
   }
 
   function updateGoal(index: number, patch: Partial<GoalDraft>) {
@@ -274,10 +379,21 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     const limit = match?.sport === 'volleyball' ? 2 : Number.POSITIVE_INFINITY
     const next = Math.min(limit, Math.max(0, homeScore + delta))
     if (next === homeScore) return
+    if (delta < 0 && match?.sport === 'football') {
+      removeGoalForScoreDecrease(match.home_team_id, homeScore)
+    }
     setHomeScore(next)
     if (delta > 0) {
       ensurePlayingStarted()
-      if (match?.sport === 'volleyball') advanceAfterSetWin(next, awayScore)
+      if (match?.sport === 'volleyball') {
+        advanceAfterSetWin(next, awayScore)
+      } else if (match) {
+        setScorerPrompt({
+          teamId: match.home_team_id,
+          scoreWasAdded: true,
+          minute: liveMinutePreview,
+        })
+      }
     }
   }
 
@@ -285,10 +401,21 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     const limit = match?.sport === 'volleyball' ? 2 : Number.POSITIVE_INFINITY
     const next = Math.min(limit, Math.max(0, awayScore + delta))
     if (next === awayScore) return
+    if (delta < 0 && match?.sport === 'football') {
+      removeGoalForScoreDecrease(match.away_team_id, awayScore)
+    }
     setAwayScore(next)
     if (delta > 0) {
       ensurePlayingStarted()
-      if (match?.sport === 'volleyball') advanceAfterSetWin(homeScore, next)
+      if (match?.sport === 'volleyball') {
+        advanceAfterSetWin(homeScore, next)
+      } else if (match) {
+        setScorerPrompt({
+          teamId: match.away_team_id,
+          scoreWasAdded: true,
+          minute: liveMinutePreview,
+        })
+      }
     }
   }
 
@@ -314,6 +441,13 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
   async function save() {
     if (!match) return
+    if (
+      match.sport === 'football' &&
+      (goalSummary.homeTracked > homeScore || goalSummary.awayTracked > awayScore)
+    ) {
+      setError('รายการประตูมากกว่าสกอร์ กรุณาลบรายการผู้ยิงที่เกินก่อนบันทึก')
+      return
+    }
     const parsedMatchOrder = Number(matchOrder)
     if (
       !Number.isInteger(parsedMatchOrder) ||
@@ -364,9 +498,16 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
       }
       let stamped: GoalDraft[] | null = null
       if (match.sport === 'football') {
-        stamped = goals
-          .filter((g) => g.jersey_number.trim())
-          .map((g) => {
+        stamped = goals.map((g) => {
+            if (!g.jersey_number.trim()) {
+              return {
+                ...g,
+                jersey_number: '',
+                player_name: null,
+                registration_id: null,
+                minute_approx: g.minute_approx ?? stampMinute,
+              }
+            }
             const linked = resolveFromJersey(g.team_id, g.jersey_number)
             return {
               ...g,
@@ -378,7 +519,11 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
       await saveMatchState(matchId, patch, stamped)
       if (stamped) setGoals(stamped)
       setStartedAt(effectiveStartedAt)
-      setToast(`บันทึกแล้ว · นาทีใหม่ล็อกที่ ${stampMinute}'`)
+      setToast(
+        totalPendingScorers > 0
+          ? `บันทึกแล้ว · รอระบุผู้ยิง ${totalPendingScorers} ประตู`
+          : `บันทึกแล้ว · นาทีล่าสุด ${stampMinute}'`,
+      )
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ')
     } finally {
@@ -572,29 +717,48 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
       {match.sport === 'football' ? (
         <div className="editor-panel">
-          <div className="editor-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>ผู้ยิง (เลือกเบอร์)</span>
-            <button type="button" className="btn ghost" onClick={addGoal}>
-              + เพิ่ม
-            </button>
+          <div className="editor-title goal-section-title">
+            <span>ผู้ยิงประตู</span>
+            {totalPendingScorers > 0 ? (
+              <span className="goal-pending-count">ค้าง {totalPendingScorers}</span>
+            ) : null}
           </div>
           <p className="field-hint">
-            เลือกเบอร์จากทะเบียน · ชื่อล็อกอัตโนมัติ · นาทีใหม่ล็อกจากนาฬิกานัดเมื่อกดบันทึก
-            (ตอนนี้ ~{liveMinutePreview}')
+            กด + ที่สกอร์แล้วเลือกผู้ยิงได้ทันที · ถ้ายังไม่ทราบ กรอกย้อนหลังได้ · นาทีปัจจุบัน
+            ~{liveMinutePreview}'
           </p>
-          {goals.length === 0 ? (
-            <p className="field-hint">ยังไม่มีรายการ</p>
-          ) : (
-            goals.map((g, index) => {
+          {totalPendingScorers > 0 ? (
+            <div className="goal-pending-actions" aria-label="ประตูที่ยังไม่ระบุผู้ยิง">
+              {homePendingScorers > 0 ? (
+                <button type="button" onClick={() => openPendingScorer(match.home_team_id)}>
+                  <span>{teamName(match.home)}</span>
+                  <strong>{homePendingScorers} ประตู · เลือกผู้ยิง</strong>
+                </button>
+              ) : null}
+              {awayPendingScorers > 0 ? (
+                <button type="button" onClick={() => openPendingScorer(match.away_team_id)}>
+                  <span>{teamName(match.away)}</span>
+                  <strong>{awayPendingScorers} ประตู · เลือกผู้ยิง</strong>
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {goals.length === 0 ? <p className="field-hint">ยังไม่มีรายการผู้ยิง</p> : null}
+          {goals.map((g, index) => {
               const teamRegs = regsForTeam(g.team_id)
+              const currentJersey = jerseyKey(g.jersey_number)
+              const jerseyIsRegistered = teamRegs.some(
+                (registration) => jerseyKey(registration.jersey_number) === currentJersey,
+              )
               const lockedName =
                 g.player_name ||
-                teamRegs.find((r) => jerseyKey(r.jersey_number) === jerseyKey(g.jersey_number))
+                teamRegs.find((r) => jerseyKey(r.jersey_number) === currentJersey)
                   ?.full_name ||
                 '—'
               return (
                 <div className="goal-edit-row goal-edit-row-simple" key={g.id ?? index}>
                   <select
+                    className="goal-team-select"
                     value={g.team_id}
                     onChange={(e) => updateGoal(index, { team_id: e.target.value })}
                     aria-label="ทีม"
@@ -606,11 +770,15 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                     ))}
                   </select>
                   <select
-                    value={jerseyKey(g.jersey_number)}
+                    className="goal-jersey-select"
+                    value={currentJersey}
                     onChange={(e) => updateGoal(index, { jersey_number: e.target.value })}
                     aria-label="เบอร์เสื้อ"
                   >
                     <option value="">เลือกเบอร์</option>
+                    {currentJersey && !jerseyIsRegistered ? (
+                      <option value={currentJersey}>#{currentJersey} (กรอกเอง)</option>
+                    ) : null}
                     {teamRegs.map((r) => {
                       const j = jerseyKey(r.jersey_number)
                       return (
@@ -620,25 +788,63 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                       )
                     })}
                   </select>
-                  <div className="goal-locked-name" title={lockedName}>
-                    {g.jersey_number ? lockedName : 'ชื่อจะขึ้นเมื่อเลือกเบอร์'}
-                  </div>
-                  <div className="goal-locked-min">
-                    {g.minute_approx != null ? `${g.minute_approx}'` : `→ ${liveMinutePreview}'`}
-                  </div>
+                  {currentJersey ? (
+                    <div className="goal-locked-name" title={lockedName}>
+                      {lockedName}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="goal-locked-name goal-assign-button"
+                      onClick={() => openPendingScorer(g.team_id, index)}
+                    >
+                      ระบุผู้ยิงภายหลัง
+                    </button>
+                  )}
+                  <label className="goal-minute-field">
+                    <input
+                      type="number"
+                      min="0"
+                      max="120"
+                      value={g.minute_approx ?? ''}
+                      onChange={(event) => {
+                        const value = event.target.value
+                        updateGoal(index, {
+                          minute_approx: value === '' ? null : Math.min(120, Math.max(0, Number(value))),
+                        })
+                      }}
+                      placeholder={String(liveMinutePreview)}
+                      aria-label="นาทีที่ทำประตู"
+                    />
+                    <span>'</span>
+                  </label>
                   <button
                     type="button"
-                    className="btn ghost"
+                    className="btn ghost goal-remove-button"
                     onClick={() => removeGoal(index)}
-                    aria-label="ลบ"
+                    aria-label="ลบรายการผู้ยิง"
+                    title="ลบรายการผู้ยิง (สกอร์ยังคงเดิม)"
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
               )
-            })
-          )}
+            })}
         </div>
+      ) : null}
+
+      {scorerPrompt ? (
+        <GoalScorerDialog
+          teamName={
+            teamOptions.find((team) => team.id === scorerPrompt.teamId)?.label ?? 'ทีมที่ทำประตู'
+          }
+          minute={scorerPrompt.minute}
+          candidates={scorerCandidates}
+          canUndoGoal={scorerPrompt.scoreWasAdded}
+          onChoose={chooseScorer}
+          onLater={chooseScorerLater}
+          onUndoGoal={undoPromptGoal}
+        />
       ) : null}
 
       <div className="actions">

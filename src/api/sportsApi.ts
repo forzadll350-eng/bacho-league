@@ -531,14 +531,18 @@ async function fetchFromSupabase(sport: SportType): Promise<SportBundle> {
 
   const goalsByMatch = new Map<string, MatchGoal[]>()
   for (const g of goals) {
+    const jerseyNumber = g.jersey_number.trim()
+    // Empty jersey numbers are private admin placeholders for goals whose scorer
+    // will be identified later. They must not appear publicly or count as scorers.
+    if (!jerseyNumber) continue
     const fromReg = g.registration_id ? regById.get(g.registration_id) : undefined
-    const byJersey = regByTeamJersey.get(`${g.team_id}:${g.jersey_number}`)
+    const byJersey = regByTeamJersey.get(`${g.team_id}:${jerseyNumber}`)
     const linked = fromReg ?? byJersey
     const mapped: MatchGoal = {
       id: g.id,
       matchId: g.match_id,
       teamId: g.team_id,
-      jerseyNumber: g.jersey_number,
+      jerseyNumber,
       minuteApprox: g.minute_approx ?? undefined,
       playerName: g.player_name ?? linked?.full_name ?? undefined,
       photoUrl: linked?.photo_url ?? undefined,
