@@ -15,21 +15,33 @@ function fail(message) {
   process.exit(1)
 }
 
+function spawn(command, args, options) {
+  if (process.platform === 'win32' && command.endsWith('.cmd')) {
+    return spawnSync(process.env.ComSpec || 'cmd.exe', [
+      '/d',
+      '/s',
+      '/c',
+      [command, ...args].join(' '),
+    ], options)
+  }
+  return spawnSync(command, args, options)
+}
+
 function capture(command, args) {
-  const result = spawnSync(command, args, {
+  const result = spawn(command, args, {
     cwd: ROOT,
     encoding: 'utf8',
     windowsHide: true,
   })
   if (result.status !== 0) {
-    const details = `${result.stdout || ''}${result.stderr || ''}`.trim()
+    const details = `${result.stdout || ''}${result.stderr || ''}${result.error || ''}`.trim()
     fail(`${command} ${args.join(' ')} failed${details ? `\n${details}` : ''}`)
   }
   return `${result.stdout || ''}${result.stderr || ''}`.trim()
 }
 
 function run(command, args) {
-  const result = spawnSync(command, args, {
+  const result = spawn(command, args, {
     cwd: ROOT,
     stdio: 'inherit',
     windowsHide: true,
