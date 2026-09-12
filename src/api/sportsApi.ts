@@ -31,6 +31,7 @@ type DbMatch = {
   home_team_id: string
   away_team_id: string
   scheduled_at: string
+  started_at: string | null
   ends_at: string | null
   venue: string | null
   status: MatchStatus
@@ -43,7 +44,6 @@ type DbMatch = {
   live_clock: string | null
   period_label: string | null
   detail: boolean
-  live_stream_url: string | null
   group_code: string | null
   stage: string | null
   court_label: string | null
@@ -95,6 +95,7 @@ type DbRegistration = {
 
 type DbVote = {
   registration_id: string
+  votes: number
 }
 
 function placeholderTeam(): Team {
@@ -214,6 +215,7 @@ function mapMatch(
     homeTeam: teamById(teams, homeId),
     awayTeam: teamById(teams, awayId),
     scheduledAt: row.scheduled_at,
+    startedAt: row.started_at ?? undefined,
     endsAt: row.ends_at ?? undefined,
     venue: row.venue ?? undefined,
     status: row.status,
@@ -230,7 +232,6 @@ function mapMatch(
     liveClock: row.live_clock ?? undefined,
     periodLabel: row.period_label ?? undefined,
     detail: false,
-    liveStreamUrl: row.live_stream_url ?? undefined,
     groupCode: row.group_code === 'A' || row.group_code === 'B' ? row.group_code : undefined,
     stage:
       row.stage === 'group' || row.stage === 'semi' || row.stage === 'final'
@@ -299,7 +300,6 @@ function buildHero(sport: SportType, match: Match | undefined): LiveHeroData {
       match.periodLabel ??
       (live ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
     clock: match.liveClock ?? (live ? 'LIVE' : match.courtLabel ?? '—'),
-    liveStreamUrl: match.liveStreamUrl,
     stats: [],
   }
 
@@ -341,15 +341,6 @@ function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): Stand
     const away = stats.get(m.awayTeam.id)
     if (!home || !away) continue
 
-    const scored =
-      m.status === 'finished' || m.status === 'live' || m.status === 'halftime'
-    if (scored) {
-      home.goalsFor += m.homeScore
-      home.goalsAgainst += m.awayScore
-      away.goalsFor += m.awayScore
-      away.goalsAgainst += m.homeScore
-    }
-
     const countsForPoints =
       m.status === 'finished' &&
       Boolean(m.groupCode) &&
@@ -357,6 +348,10 @@ function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): Stand
       m.stage !== 'final'
     if (!countsForPoints) continue
 
+    home.goalsFor += m.homeScore
+    home.goalsAgainst += m.awayScore
+    away.goalsFor += m.awayScore
+    away.goalsAgainst += m.homeScore
     home.played += 1
     away.played += 1
     if (m.homeScore > m.awayScore) {
@@ -455,7 +450,7 @@ function mergeBundle(
   const done = matches.filter((m) => m.status === 'finished').length
   const scheduled = matches.filter((m) => m.status === 'scheduled').length
   const enriched = enrichStandingsWithGoals(table, matches)
-  const leadPts = [...enriched].sort((a, b) => a.rank - b.rank)[0]?.points ?? 0
+  const leadPts = enriched.reduce((max, row) => Math.max(max, row.points), 0)
   const totalGoals = matches.reduce((sum, m) => sum + m.homeScore + m.awayScore, 0)
   const topScorers = sport === 'football' ? buildTopScorers(matches) : []
 
@@ -507,11 +502,11 @@ async function fetchFromSupabase(sport: SportType): Promise<SportBundle> {
       }),
       supabase.from('match_goals').select('*').order('created_at', { ascending: true }),
       supabase
-        .from('registrations')
+        .from('public_players')
         .select('id, sport, team_id, full_name, jersey_number, photo_url')
         .eq('sport', sport),
       sport === 'football'
-        ? supabase.from('favorite_votes').select('registration_id').eq('sport', 'football')
+        ? supabase.from('favorite_vote_totals').select('registration_id, votes')
         : Promise.resolve({ data: [] as DbVote[], error: null }),
     ])
 
@@ -563,7 +558,7 @@ async function fetchFromSupabase(sport: SportType): Promise<SportBundle> {
 
   const voteCount = new Map<string, number>()
   for (const v of votes) {
-    voteCount.set(v.registration_id, (voteCount.get(v.registration_id) ?? 0) + 1)
+    voteCount.set(v.registration_id, v.votes)
   }
 
   const voteCandidates: VoteCandidate[] = regs
@@ -586,12 +581,7 @@ export async function loadSportBundle(sport: SportType): Promise<SportBundle> {
   if (!isSupabaseConfigured) {
     return emptyBundle(sport)
   }
-  try {
-    return await fetchFromSupabase(sport)
-  } catch (err) {
-    console.warn('[sportsApi] Supabase fetch failed', err)
-    return emptyBundle(sport)
-  }
+  return fetchFromSupabase(sport)
 }
 
 export function subscribeSportUpdates(
@@ -618,9 +608,6 @@ export function subscribeSportUpdates(
       () => onChange(),
     )
     .on('postgres_changes', { event: '*', schema: 'public', table: 'match_goals' }, () =>
-      onChange(),
-    )
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'favorite_votes' }, () =>
       onChange(),
     )
     .subscribe()

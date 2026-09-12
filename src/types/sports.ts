@@ -69,6 +69,8 @@ export interface Match {
   homeTeam: Team
   awayTeam: Team
   scheduledAt: string
+  /** Actual kickoff, stamped when status first changes to live */
+  startedAt?: string
   endsAt?: string
   venue?: string
   status: MatchStatus
@@ -82,7 +84,6 @@ export interface Match {
   liveClock?: string
   periodLabel?: string
   detail?: boolean
-  liveStreamUrl?: string
   hideScheduleTime?: boolean
   groupCode?: 'A' | 'B'
   stage?: MatchStage
@@ -207,7 +208,6 @@ export interface LiveHeroData {
   clock: string
   stats: [string, string][]
   sets?: VolleyballSet[]
-  liveStreamUrl?: string
 }
 
 export interface SportBundle {

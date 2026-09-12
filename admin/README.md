@@ -4,13 +4,15 @@
 
 ## บัญชีแอดมิน (สนาม)
 
-| ไอดี | PIN |
-|------|-----|
-| lubo1 … lubo8 | `123456` |
+| ไอดี | การยืนยันตัวตน |
+|------|----------------|
+| lubo1 … lubo8 | PIN ที่ผู้ดูแลกำหนดไว้ใน Supabase Auth |
 
 - เข้าด้วยไอดีอย่างเดียว (ระบบแปลงเป็นอีเมลภายใน)
 - **เข้าซ้อนเครื่องไม่ได้** — ถ้าไอดีเดียวกันล็อกอินเครื่องใหม่ เครื่องเก่าจะถูกเตะออก
 - อีเมลใน Auth: `luboN@bacholeague.app`
+- อีเมลเจ้าของระบบที่อนุญาตเพิ่มเติม: `nitikornluboksawo@gmail.com`
+- ห้ามเก็บ PIN จริงไว้ใน Git หรือเอกสารที่แชร์
 
 ## เตรียมก่อนรัน
 
@@ -18,8 +20,7 @@
 
 ใน **SQL Editor** รัน:
 
-- `../supabase/migrations/202603100002_admin_write.sql`
-- `../supabase/migrations/202603110010_admin_single_session.sql`
+- รัน migration ทุกไฟล์ใน `../supabase/migrations/` ตามชื่อไฟล์เรียงลำดับ
 
 ```bash
 cp .env.example .env
@@ -48,5 +49,5 @@ npm run dev
 ## หมายเหตุ
 
 - Public app อ่านอย่างเดียว (SELECT RLS)
-- Admin เขียนผ่าน session ของผู้ใช้ Auth + policy ใน migration
+- Admin เขียนผ่าน session ของผู้ใช้ Auth และต้องผ่าน allowlist ใน RLS
 - ไม่มีหน้าสถิติ / รายงาน / ตั้งค่าระบบใน MVP นี้

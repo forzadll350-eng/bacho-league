@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "deploy:prod": "node scripts/deploy-prod.mjs"
+    "deploy:prod": "node scripts/deploy-prod.mjs",
+    "deploy:admin:prod": "node scripts/deploy-admin-prod.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

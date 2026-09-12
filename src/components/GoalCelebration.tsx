@@ -170,7 +170,10 @@ function BurstOverlay({
 }) {
   const titleId = useId()
   const onDoneRef = useRef(onDone)
-  onDoneRef.current = onDone
+
+  useEffect(() => {
+    onDoneRef.current = onDone
+  }, [onDone])
 
   useEffect(() => {
     const id = window.setTimeout(() => onDoneRef.current(), BURST_MS)

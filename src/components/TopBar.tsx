@@ -1,4 +1,4 @@
-import { Bell, Moon, Search, Sun } from 'lucide-react'
+import { Bell, Moon, Sun } from 'lucide-react'
 import { LEAGUE } from '../data/teams'
 import { useApp } from '../context/AppContext'
 import { SportSwitcher } from './SportSwitcher'
@@ -30,9 +30,6 @@ export function TopBar() {
             ) : (
               <Moon size={18} strokeWidth={1.8} />
             )}
-          </button>
-          <button className="icon-btn" type="button" aria-label="ค้นหา / Search">
-            <Search size={18} strokeWidth={1.8} />
           </button>
           <button
             className="icon-btn"

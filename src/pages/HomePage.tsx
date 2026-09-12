@@ -74,7 +74,6 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
       match.periodLabel ??
       (playing ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
     clock: match.hideScheduleTime ? 'กำลังแข่งขัน' : formatClock(match),
-    liveStreamUrl: undefined,
     league: [base.league.split('·')[0]?.trim() || base.league, `สาย ${group}`, match.courtLabel]
       .filter(Boolean)
       .join(' · '),
@@ -154,7 +153,7 @@ export function HomePage() {
         homeTeamId={featured?.homeTeam.id}
         matchId={featured?.id}
         matchStatus={featured?.status}
-        scheduledAt={featured?.scheduledAt}
+        startedAt={featured?.startedAt}
         hideScheduleTime={featured?.hideScheduleTime}
       />
 
@@ -216,7 +215,7 @@ export function HomePage() {
         </button>
       </div>
       <StandingsTable
-        rows={groupTable.length ? groupTable : data.table}
+        rows={groupTable}
         limit={4}
         sport={sport}
       />

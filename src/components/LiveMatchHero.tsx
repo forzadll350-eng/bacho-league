@@ -16,7 +16,7 @@ function parseScore(score: string): { home: number; away: number } | null {
 function useMatchClock(
   isLive: boolean,
   status?: MatchStatus,
-  scheduledAt?: string,
+  startedAt?: string,
   fallback?: string,
 ) {
   const [now, setNow] = useState(() => Date.now())
@@ -31,9 +31,9 @@ function useMatchClock(
   return useMemo(() => {
     if (status === 'halftime') return 'พักครึ่ง'
     if (status === 'finished') return 'จบแล้ว'
-    if (!playing || !scheduledAt) return fallback ?? '—'
-    return formatElapsedClock(scheduledAt, now)
-  }, [playing, status, scheduledAt, fallback, now])
+    if (!playing || !startedAt) return fallback ?? '0:00'
+    return formatElapsedClock(startedAt, now)
+  }, [playing, status, startedAt, fallback, now])
 }
 
 export function LiveMatchHero({
@@ -43,7 +43,7 @@ export function LiveMatchHero({
   goals,
   homeTeamId,
   matchStatus,
-  scheduledAt,
+  startedAt,
   hideScheduleTime = false,
 }: {
   compact?: boolean
@@ -53,7 +53,7 @@ export function LiveMatchHero({
   homeTeamId?: string
   matchId?: string
   matchStatus?: MatchStatus
-  scheduledAt?: string
+  startedAt?: string
   hideScheduleTime?: boolean
 }) {
   const { sport, data } = useApp()
@@ -67,7 +67,7 @@ export function LiveMatchHero({
   const homeLeading = showLead && scores != null && scores.home > scores.away
   const awayLeading = showLead && scores != null && scores.away > scores.home
 
-  const matchClockLabel = useMatchClock(isLive, matchStatus, scheduledAt, h.clock)
+  const matchClockLabel = useMatchClock(isLive, matchStatus, startedAt, h.clock)
   const clockLabel = hideScheduleTime ? 'กำลังแข่งขัน' : matchClockLabel
 
   return (

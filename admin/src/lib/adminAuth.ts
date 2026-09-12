@@ -1,11 +1,20 @@
-/** อีเมลจริงใน Supabase Auth สำหรับไอดีแอดมิน lubo1–lubo8 */
+/** อีเมลจริงใน Supabase Auth สำหรับผู้ดูแลที่ได้รับอนุญาต */
 export const ADMIN_EMAIL_DOMAIN = 'bacholeague.app'
+
+const ADMIN_EMAILS = new Set([
+  ...Array.from({ length: 8 }, (_, index) => `lubo${index + 1}@${ADMIN_EMAIL_DOMAIN}`),
+  'nitikornluboksawo@gmail.com',
+])
+
+export function isAllowedAdminEmail(email: string | undefined | null): boolean {
+  return ADMIN_EMAILS.has((email ?? '').trim().toLowerCase())
+}
 
 export function adminEmailFromLogin(login: string): string {
   const raw = login.trim().toLowerCase()
   if (!raw) return ''
-  if (raw.includes('@')) return raw
-  return `${raw}@${ADMIN_EMAIL_DOMAIN}`
+  const email = raw.includes('@') ? raw : `${raw}@${ADMIN_EMAIL_DOMAIN}`
+  return isAllowedAdminEmail(email) ? email : ''
 }
 
 export function adminDisplayName(email: string | undefined | null): string {

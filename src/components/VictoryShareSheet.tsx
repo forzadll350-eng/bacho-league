@@ -12,6 +12,10 @@ type VictoryPayload = {
   awayScore: number
   winnerScore: number
   loserScore: number
+  isDraw: boolean
+  crestUrl: string
+  resultMark: 'WINNER' | 'DRAW'
+  sportLabel: string
   isPreview: boolean
   isFinal: boolean
   groupLabel: string
@@ -37,6 +41,7 @@ function resolveVictory(match: Match): VictoryPayload {
   const awayWins = awayScore > homeScore
   const hasResult =
     match.status === 'finished' || match.status === 'live' || match.status === 'halftime'
+  const isDraw = hasResult && !homeWins && !awayWins
   const winner = homeWins ? match.homeTeam : awayWins ? match.awayTeam : match.homeTeam
   const loser = homeWins ? match.awayTeam : awayWins ? match.homeTeam : match.awayTeam
 
@@ -52,6 +57,10 @@ function resolveVictory(match: Match): VictoryPayload {
     awayScore,
     winnerScore: Math.max(homeScore, awayScore),
     loserScore: Math.min(homeScore, awayScore),
+    isDraw,
+    crestUrl: isDraw ? LEAGUE.crestUrl : winner.crestUrl,
+    resultMark: isDraw ? 'DRAW' : 'WINNER',
+    sportLabel: match.sport === 'volleyball' ? 'วอลเลย์บอลหญิง' : 'ฟุตซอลลีก',
     // ตัวอย่างเฉพาะตอนยังไม่มีผลชัด (รอแข่ง / เสมอตอนยังไม่จบ)
     isPreview: !hasResult || (!homeWins && !awayWins && match.status !== 'finished'),
   }
@@ -113,7 +122,7 @@ function drawVictoryFrame(
   ctx.textAlign = 'center'
   ctx.fillStyle = 'rgba(255,255,255,0.55)'
   ctx.font = '500 34px "IBM Plex Sans Thai", sans-serif'
-  ctx.fillText('ฟุตซอลลีก', cx, 120)
+  ctx.fillText(payload.sportLabel, cx, 120)
   ctx.fillStyle = payload.isFinal ? '#ffd27a' : 'rgba(255,198,92,0.95)'
   ctx.font = payload.isFinal
     ? '800 42px "IBM Plex Sans Thai", sans-serif'
@@ -163,7 +172,7 @@ function drawVictoryFrame(
   ctx.font = payload.isFinal
     ? '900 92px "IBM Plex Sans", Impact, sans-serif'
     : '900 72px "IBM Plex Sans", Impact, sans-serif'
-  ctx.fillText('WINNER', 0, 0)
+  ctx.fillText(payload.resultMark, 0, 0)
   ctx.restore()
 
   const scoreY = winnerY + (payload.isFinal ? 150 : 130)
@@ -235,7 +244,7 @@ async function exportVictoryPng(payload: VictoryPayload): Promise<Blob | null> {
   canvas.height = 1920
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
-  const crest = await loadImage(payload.winner.crestUrl)
+  const crest = await loadImage(payload.crestUrl)
   drawVictoryFrame(ctx, payload, crest, 0.55)
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'))
 }
@@ -246,7 +255,7 @@ async function exportVictoryVideo(payload: VictoryPayload): Promise<Blob | null>
   canvas.height = 1920
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
-  const crest = await loadImage(payload.winner.crestUrl)
+  const crest = await loadImage(payload.crestUrl)
 
   const stream = canvas.captureStream(30)
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
@@ -347,7 +356,7 @@ export function VictoryShareSheet({
     try {
       const blob = await exportVictoryPng(payload)
       if (!blob) throw new Error('export failed')
-      downloadBlob(blob, `bacho-league-${payload.winner.id}-win.png`)
+      downloadBlob(blob, `bacho-league-${payload.isDraw ? 'draw' : `${payload.winner.id}-win`}.png`)
       setHint('บันทึกรูปแล้ว — โพสต์ Stories ได้เลย')
     } catch {
       setHint('บันทึกรูปไม่สำเร็จ')
@@ -362,7 +371,7 @@ export function VictoryShareSheet({
     try {
       const blob = await exportVictoryVideo(payload)
       if (!blob) throw new Error('video unsupported')
-      downloadBlob(blob, `bacho-league-${payload.winner.id}-win.webm`)
+      downloadBlob(blob, `bacho-league-${payload.isDraw ? 'draw' : `${payload.winner.id}-win`}.webm`)
       setHint('บันทึกวิดีโอแล้ว · อัป TikTok / IG Reels ได้')
     } catch {
       setHint('เครื่องนี้ยังบันทึกวิดีโอไม่ได้ — ใช้บันทึกรูปแทน')
@@ -379,7 +388,11 @@ export function VictoryShareSheet({
       if (!blob) throw new Error('export failed')
       const file = new File([blob], `bacho-league-win.png`, { type: 'image/png' })
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: `${payload.winner.nameTh} WINNER`, text: shareText })
+        await navigator.share({
+          files: [file],
+          title: payload.isDraw ? 'ผลการแข่งขันเสมอ' : `${payload.winner.nameTh} WINNER`,
+          text: shareText,
+        })
         setHint('แชร์แล้ว')
         setShareOpen(false)
       } else if (navigator.share) {
@@ -449,7 +462,9 @@ export function VictoryShareSheet({
                 : 'การ์ดแชมป์'
               : payload.isPreview
                 ? 'ตัวอย่างการ์ดชัย'
-                : 'การ์ดชัยชนะ'}
+                : payload.isDraw
+                  ? 'ผลการแข่งขันเสมอ'
+                  : 'การ์ดชัยชนะ'}
           </h2>
           <button type="button" className="victory-icon-btn" onClick={onClose} aria-label="ปิด">
             <X size={18} strokeWidth={1.8} />
@@ -460,7 +475,7 @@ export function VictoryShareSheet({
           <div
             className={`victory-card${payload.isFinal ? ' final' : ''}`}
             ref={cardRef}
-            data-winner={payload.winner.id}
+            data-winner={payload.isDraw ? 'draw' : payload.winner.id}
           >
             <span className="victory-spark s1" />
             <span className="victory-spark s2" />
@@ -471,18 +486,18 @@ export function VictoryShareSheet({
             <span className="victory-ray" aria-hidden />
             {payload.isFinal ? <span className="victory-burst" aria-hidden /> : null}
 
-            <p className="victory-kicker">ฟุตซอลลีก</p>
+            <p className="victory-kicker">{payload.sportLabel}</p>
             <p className="victory-meta">{payload.groupLabel}</p>
             <p className="victory-date">{payload.kickoffLabel}</p>
 
             <div className="victory-crest-wrap">
               <span className="victory-ring" aria-hidden />
               {payload.isFinal ? <span className="victory-ring outer" aria-hidden /> : null}
-              <img src={payload.winner.crestUrl} alt="" className="victory-crest" />
+              <img src={payload.crestUrl} alt="" className="victory-crest" />
             </div>
 
             <p className="victory-winner-mark" aria-label="Winner">
-              <span>WINNER</span>
+              <span>{payload.resultMark}</span>
             </p>
 
             <p className="victory-score sports-num">

@@ -14,6 +14,7 @@ import {
   ADMIN_SESSION_KEY,
   adminDisplayName,
   adminEmailFromLogin,
+  isAllowedAdminEmail,
 } from '../lib/adminAuth'
 
 type AuthContextValue = {
@@ -130,13 +131,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(({ data }) => {
       if (!cancelled) {
-        setSession(data.session)
+        if (data.session && !isAllowedAdminEmail(data.session.user.email)) {
+          setKickMessage('บัญชีนี้ไม่ได้รับอนุญาตให้ใช้หน้าแอดมิน')
+          setSession(null)
+          void supabase?.auth.signOut()
+        } else {
+          setSession(data.session)
+        }
         setLoading(false)
       }
     })
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next)
+      if (next && !isAllowedAdminEmail(next.user.email)) {
+        setKickMessage('บัญชีนี้ไม่ได้รับอนุญาตให้ใช้หน้าแอดมิน')
+        setSession(null)
+        window.setTimeout(() => void supabase?.auth.signOut(), 0)
+      } else {
+        setSession(next)
+      }
       setLoading(false)
     })
 
@@ -171,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (login: string, pin: string) => {
       if (!supabase) return 'ยังไม่ได้ตั้งค่า VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY'
       const email = adminEmailFromLogin(login)
-      if (!email) return 'กรุณากรอกไอดี'
+      if (!email) return 'ไอดีนี้ไม่ได้รับอนุญาตให้ใช้หน้าแอดมิน'
       if (!pin.trim()) return 'กรุณากรอก PIN'
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -185,6 +198,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return error.message
       }
       if (!data.user) return 'เข้าสู่ระบบไม่สำเร็จ'
+      if (!isAllowedAdminEmail(data.user.email)) {
+        await supabase.auth.signOut()
+        return 'บัญชีนี้ไม่ได้รับอนุญาตให้ใช้หน้าแอดมิน'
+      }
 
       const claimErr = await claimSession(data.user.id)
       if (claimErr) {

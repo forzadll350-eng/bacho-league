@@ -11,6 +11,7 @@ import {
   POSITION_OPTIONS,
   REGISTRATION_CLOSED_MESSAGE,
   countTeamRegistrations,
+  discardUnregisteredPlayerPhoto,
   isRegistrationOpen,
   submitRegistration,
   teamsForSelect,
@@ -119,19 +120,24 @@ export function RegisterPage() {
 
     setBusy(true)
     try {
-      let photoUrl: string | undefined
+      let uploadedPhoto: Awaited<ReturnType<typeof uploadPlayerPhoto>> | undefined
       if (isFutsal && photo) {
-        photoUrl = await uploadPlayerPhoto(photo, teamId)
+        uploadedPhoto = await uploadPlayerPhoto(photo, teamId)
       }
-      await submitRegistration({
-        sport,
-        teamId,
-        fullName,
-        position,
-        age: ageNum,
-        jerseyNumber: jersey || undefined,
-        photoUrl,
-      })
+      try {
+        await submitRegistration({
+          sport,
+          teamId,
+          fullName,
+          position,
+          age: ageNum,
+          jerseyNumber: jersey || undefined,
+          photoUrl: uploadedPhoto?.publicUrl,
+        })
+      } catch (submitError) {
+        if (uploadedPhoto) await discardUnregisteredPlayerPhoto(uploadedPhoto.path)
+        throw submitError
+      }
       setFullName('')
       setAge('')
       setJersey('')

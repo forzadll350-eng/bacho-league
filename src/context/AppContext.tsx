@@ -63,6 +63,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   })
   const [data, setData] = useState<SportBundle>(() => emptyBundle('football'))
   const [loading, setLoading] = useState(true)
+  const [usingLiveData, setUsingLiveData] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [updateSeconds, setUpdateSeconds] = useState(0)
   const [homeGroup, setHomeGroup] = useState<'A' | 'B'>('A')
@@ -113,13 +114,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    void loadSportBundle(sport).then((bundle) => {
-      if (!cancelled) {
-        setData(bundle)
-        setLoading(false)
-        setUpdateSeconds(0)
-      }
-    })
+    void loadSportBundle(sport)
+      .then((bundle) => {
+        if (!cancelled) {
+          setData(bundle)
+          setUsingLiveData(isSupabaseConfigured)
+          setUpdateSeconds(0)
+        }
+      })
+      .catch((err: unknown) => {
+        console.warn('[AppContext] Supabase fetch failed', err)
+        if (!cancelled) setUsingLiveData(false)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
     return () => {
       cancelled = true
     }
@@ -136,13 +145,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setUpdateSeconds((s) => (s >= 8 ? 0 : s + 1))
+      setUpdateSeconds((s) => s + 1)
     }, 1000)
     return () => window.clearInterval(id)
   }, [])
 
   const updateText =
-    updateSeconds < 5 ? 'อัปเดตเมื่อสักครู่' : `อัปเดตเมื่อ ${updateSeconds} วินาทีที่แล้ว`
+    updateSeconds < 5
+      ? 'อัปเดตเมื่อสักครู่'
+      : updateSeconds < 60
+        ? `อัปเดตเมื่อ ${updateSeconds} วินาทีที่แล้ว`
+        : `อัปเดตเมื่อ ${Math.floor(updateSeconds / 60)} นาทีที่แล้ว`
 
   const value = useMemo<AppContextValue>(
     () => ({
@@ -154,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       data,
       loading,
-      usingLiveData: isSupabaseConfigured,
+      usingLiveData,
       notifOpen,
       openNotif,
       closeNotif,
@@ -172,6 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       data,
       loading,
+      usingLiveData,
       notifOpen,
       openNotif,
       closeNotif,

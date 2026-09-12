@@ -3,9 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   fetchMatch,
   fetchMatchGoals,
-  replaceMatchGoals,
+  saveMatchState,
   teamName,
-  updateMatch,
   type GoalDraft,
 } from '../api/matches'
 import { fetchRegistrations, type RegistrationRow } from '../api/registrations'
@@ -49,9 +48,9 @@ function fromLocalInput(value: string): string | null {
 }
 
 /** นาทีเดียวกับนาฬิกาหน้าหลัก: นับจากเวลาเริ่มแข่ง */
-function matchMinuteFromKickoff(scheduledIso: string | null): number {
-  if (!scheduledIso) return 0
-  const start = new Date(scheduledIso).getTime()
+function matchMinuteFromKickoff(startedIso: string | null): number {
+  if (!startedIso) return 0
+  const start = new Date(startedIso).getTime()
   if (Number.isNaN(start)) return 0
   const elapsed = Math.max(0, Math.floor((Date.now() - start) / 60000))
   return Math.min(elapsed, 120)
@@ -83,6 +82,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   const [setScores, setSetScores] = useState<SetScoresMap>({})
   const [periodLabel, setPeriodLabel] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
+  const [startedAt, setStartedAt] = useState<string | null>(null)
   const [endsAt, setEndsAt] = useState('')
   const [hideScheduleTime, setHideScheduleTime] = useState(false)
   const [goals, setGoals] = useState<GoalDraft[]>([])
@@ -114,6 +114,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         setSetScores((row.set_scores as SetScoresMap) ?? {})
         setPeriodLabel(row.period_label ?? '')
         setScheduledAt(toLocalInput(row.scheduled_at))
+        setStartedAt(row.started_at)
         setEndsAt(toLocalInput(row.ends_at))
         setHideScheduleTime(Boolean(row.hide_schedule_time))
         setGoals(
@@ -159,13 +160,12 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   }, [match])
 
   const liveMinutePreview = useMemo(() => {
-    const iso = fromLocalInput(scheduledAt)
-    if (!iso) return 0
-    const start = new Date(iso).getTime()
+    if (!startedAt) return 0
+    const start = new Date(startedAt).getTime()
     if (Number.isNaN(start)) return 0
     void clockNow
-    return Math.min(120, Math.max(0, Math.floor((Date.now() - start) / 60000)))
-  }, [scheduledAt, clockNow])
+    return Math.min(120, Math.max(0, Math.floor((clockNow - start) / 60000)))
+  }, [startedAt, clockNow])
 
   function regsForTeam(teamId: string) {
     return regs
@@ -232,34 +232,53 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     setGoals((prev) => prev.filter((_, i) => i !== index))
   }
 
-  function advanceAfterSetWin() {
-    const nextSet = clampSetNumber(Math.min(3, pointsSet + 1))
+  function ensurePlayingStarted() {
+    if (!startedAt) setStartedAt(new Date().toISOString())
+    if (status === 'scheduled' || status === 'halftime') setStatus('live')
+  }
+
+  function changeStatus(next: MatchStatus) {
+    if ((next === 'live' || next === 'halftime') && status !== 'live' && status !== 'halftime') {
+      setStartedAt(new Date().toISOString())
+    } else if (next === 'scheduled' || next === 'postponed' || next === 'cancelled') {
+      setStartedAt(null)
+    }
+    setStatus(next)
+  }
+
+  function advanceAfterSetWin(nextHomeScore: number, nextAwayScore: number) {
     const merged = writeSetPair(setScores, pointsSet, homePoints, awayPoints)
     setSetScores(merged)
-    setPointsSet(nextSet)
-    if (nextSet === pointsSet) {
-      setHomePoints(0)
-      setAwayPoints(0)
+    if (nextHomeScore >= 2 || nextAwayScore >= 2) {
+      setStatus('finished')
       return
     }
+    const nextSet = clampSetNumber(Math.min(3, pointsSet + 1))
+    setPointsSet(nextSet)
     const pair = readSetPair(merged, nextSet)
     setHomePoints(pair.home)
     setAwayPoints(pair.away)
   }
 
   function bumpHome(delta: number) {
-    setHomeScore((n) => Math.max(0, n + delta))
+    const limit = match?.sport === 'volleyball' ? 2 : Number.POSITIVE_INFINITY
+    const next = Math.min(limit, Math.max(0, homeScore + delta))
+    if (next === homeScore) return
+    setHomeScore(next)
     if (delta > 0) {
-      if (status === 'scheduled' || status === 'halftime') setStatus('live')
-      if (match?.sport === 'volleyball') advanceAfterSetWin()
+      ensurePlayingStarted()
+      if (match?.sport === 'volleyball') advanceAfterSetWin(next, awayScore)
     }
   }
 
   function bumpAway(delta: number) {
-    setAwayScore((n) => Math.max(0, n + delta))
+    const limit = match?.sport === 'volleyball' ? 2 : Number.POSITIVE_INFINITY
+    const next = Math.min(limit, Math.max(0, awayScore + delta))
+    if (next === awayScore) return
+    setAwayScore(next)
     if (delta > 0) {
-      if (status === 'scheduled' || status === 'halftime') setStatus('live')
-      if (match?.sport === 'volleyball') advanceAfterSetWin()
+      ensurePlayingStarted()
+      if (match?.sport === 'volleyball') advanceAfterSetWin(homeScore, next)
     }
   }
 
@@ -275,12 +294,12 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
   function bumpHomePoints(delta: number) {
     setHomePoints((n) => Math.max(0, n + delta))
-    if (delta > 0 && (status === 'scheduled' || status === 'halftime')) setStatus('live')
+    if (delta > 0) ensurePlayingStarted()
   }
 
   function bumpAwayPoints(delta: number) {
     setAwayPoints((n) => Math.max(0, n + delta))
-    if (delta > 0 && (status === 'scheduled' || status === 'halftime')) setStatus('live')
+    if (delta > 0) ensurePlayingStarted()
   }
 
   async function save() {
@@ -290,8 +309,12 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
       setError('กรุณาตั้งเวลาเริ่มแข่ง')
       return
     }
-    const stampMinute = matchMinuteFromKickoff(startIso)
-    const elapsedSec = Math.max(0, Math.floor((Date.now() - new Date(startIso).getTime()) / 1000))
+    const effectiveStartedAt =
+      startedAt ?? (status === 'live' || status === 'halftime' ? new Date().toISOString() : null)
+    const stampMinute = matchMinuteFromKickoff(effectiveStartedAt)
+    const elapsedSec = effectiveStartedAt
+      ? Math.max(0, Math.floor((Date.now() - new Date(effectiveStartedAt).getTime()) / 1000))
+      : 0
     const liveClock =
       status === 'live'
         ? `${Math.floor(elapsedSec / 60)}:${String(elapsedSec % 60).padStart(2, '0')}`
@@ -300,7 +323,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     setToast(null)
     setError(null)
     try {
-      await updateMatch(matchId, {
+      const patch = {
         status,
         home_score: homeScore,
         away_score: awayScore,
@@ -313,26 +336,28 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
             : {},
         live_clock: liveClock,
         period_label: periodLabel.trim() || null,
-        live_stream_url: null,
         scheduled_at: startIso,
+        started_at: effectiveStartedAt,
         ends_at: fromLocalInput(endsAt),
         hide_schedule_time: hideScheduleTime,
         updated_at: new Date().toISOString(),
-      })
+      }
+      let stamped: GoalDraft[] | null = null
       if (match.sport === 'football') {
-        const stamped = goals
+        stamped = goals
           .filter((g) => g.jersey_number.trim())
           .map((g) => {
             const linked = resolveFromJersey(g.team_id, g.jersey_number)
             return {
               ...g,
-              ...linked,
+              ...(linked.registration_id ? linked : {}),
               minute_approx: g.minute_approx ?? stampMinute,
             }
           })
-        await replaceMatchGoals(matchId, stamped)
-        setGoals(stamped)
       }
+      await saveMatchState(matchId, patch, stamped)
+      if (stamped) setGoals(stamped)
+      setStartedAt(effectiveStartedAt)
       setToast(`บันทึกแล้ว · นาทีใหม่ล็อกที่ ${stampMinute}'`)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ')
@@ -392,8 +417,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         </div>
         {match.sport === 'volleyball' ? (
           <p className="field-hint" style={{ marginTop: 0 }}>
-            จำนวนเซตที่ชนะ เช่น 2–0 · กด + เซตแล้วจะเก็บแต้มเซตปัจจุบันและเลื่อนไปเซตถัดไป ·
-            ชนะแมตช์ได้ 3 แต้มในตาราง
+            แข่งชนะ 2 ใน 3 เซต · ถ้านำ 2–0 จะจบทันที ไม่เปิดเซต 3 · ชนะแมตช์ได้ 3 แต้มในตาราง
           </p>
         ) : null}
         <div className="score-edit">
@@ -486,7 +510,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
       <div className="editor-panel">
         <div className="field">
           <label htmlFor="status">สถานะ</label>
-          <select id="status" value={status} onChange={(e) => setStatus(e.target.value as MatchStatus)}>
+          <select id="status" value={status} onChange={(e) => changeStatus(e.target.value as MatchStatus)}>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
                 {STATUS_LABELS[s]}

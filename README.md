@@ -25,15 +25,13 @@ cp .env.example .env   # ใส่ anon key
 npm run dev            # http://localhost:5174/
 ```
 
-รายละเอียด: ดู `admin/README.md` (สร้าง user ใน Auth + รัน migration `202603100002_admin_write.sql`)
+สิทธิ์แอดมินถูกบังคับทั้งหน้าเว็บและ RLS: `lubo1–lubo8@bacholeague.app` และ
+`nitikornluboksawo@gmail.com` เท่านั้น
 
 ## เชื่อม Supabase
 
 1. สร้างโปรเจกต์ที่ https://supabase.com/dashboard
-2. เปิด **SQL Editor** รันตามลำดับ:
-   - `supabase/migrations/202603100001_init.sql`
-   - `supabase/seed.sql`
-   - `supabase/migrations/202603100002_admin_write.sql` (สิทธิ์ UPDATE สำหรับแอดมินที่ล็อกอิน)
+2. เปิด **SQL Editor** รัน migration ตามชื่อไฟล์เรียงลำดับ แล้วรัน `supabase/seed.sql`
 3. คัดลอกไฟล์ `.env.example` เป็น `.env` แล้วใส่:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`  
@@ -42,7 +40,16 @@ npm run dev            # http://localhost:5174/
 
 ## Deploy (Vercel)
 
-เชื่อม GitHub repo `bacho-league` แล้วใส่ Environment Variables ชุดเดียวกับ `.env`
+Production ต้อง deploy ผ่าน repository guard เท่านั้น:
+
+```bash
+npm run deploy:prod
+npm run deploy:admin:prod
+```
+
+Public app ใช้ `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` ส่วน proxy ของ
+Google Sheets ใช้ตัวแปร server-only `GOOGLE_SHEETS_WEBHOOK_URL` และ
+`GOOGLE_SHEETS_SHARED_SECRET` (ห้ามขึ้นต้นด้วย `VITE_`)
 
 ## สแตก
 

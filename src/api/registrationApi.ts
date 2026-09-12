@@ -65,7 +65,7 @@ export async function countTeamRegistrations(
 ): Promise<number> {
   if (!supabase) return 0
   const { count, error } = await supabase
-    .from('registrations')
+    .from('public_players')
     .select('*', { count: 'exact', head: true })
     .eq('sport', sport)
     .eq('team_id', teamId)
@@ -83,7 +83,7 @@ export async function findFutsalJerseyHolder(
   if (!want) return null
 
   const { data, error } = await supabase
-    .from('registrations')
+    .from('public_players')
     .select('full_name, jersey_number')
     .eq('sport', 'football')
     .eq('team_id', teamId)
@@ -93,12 +93,20 @@ export async function findFutsalJerseyHolder(
   return hit?.full_name ?? null
 }
 
-export async function uploadPlayerPhoto(file: File, teamId: string): Promise<string> {
+export type UploadedPlayerPhoto = { publicUrl: string; path: string }
+
+export async function uploadPlayerPhoto(file: File, teamId: string): Promise<UploadedPlayerPhoto> {
   if (!supabase) throw new Error('ยังไม่ได้เชื่อม Supabase')
   if (file.size > 2 * 1024 * 1024) throw new Error('รูปต้องไม่เกิน 2 MB')
 
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const path = `${teamId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const extByMime: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  }
+  const ext = extByMime[file.type]
+  if (!ext) throw new Error('รองรับเฉพาะรูป JPG, PNG หรือ WebP')
+  const path = `${teamId}/${crypto.randomUUID()}.${ext}`
   const { error } = await supabase.storage.from('player-photos').upload(path, file, {
     cacheControl: '3600',
     upsert: false,
@@ -107,7 +115,12 @@ export async function uploadPlayerPhoto(file: File, teamId: string): Promise<str
   if (error) throw error
 
   const { data } = supabase.storage.from('player-photos').getPublicUrl(path)
-  return data.publicUrl
+  return { publicUrl: data.publicUrl, path }
+}
+
+export async function discardUnregisteredPlayerPhoto(path: string): Promise<void> {
+  if (!supabase) return
+  await supabase.rpc('discard_unregistered_player_photo', { p_path: path })
 }
 
 export type RegistrationInput = {
@@ -151,14 +164,14 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     }
   }
 
-  const { error } = await supabase.from('registrations').insert({
-    sport: input.sport,
-    team_id: input.teamId,
-    full_name: input.fullName.trim(),
-    position: input.position,
-    age: input.age,
-    jersey_number: jersey,
-    photo_url: input.photoUrl || null,
+  const { data: registrationId, error } = await supabase.rpc('submit_player_registration', {
+    p_sport: input.sport,
+    p_team_id: input.teamId,
+    p_full_name: input.fullName.trim(),
+    p_position: input.position,
+    p_age: input.age,
+    p_jersey_number: jersey,
+    p_photo_url: input.photoUrl || null,
   })
 
   if (error) {
@@ -172,17 +185,25 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
           : 'เบอร์เสื้อนี้มีในระบบแล้ว',
       )
     }
+    if (error.message?.includes('deadline has passed')) {
+      throw new Error(REGISTRATION_CLOSED_MESSAGE)
+    }
+    if (error.message?.includes('registration limit reached')) {
+      throw new Error('อปท.นี้ลงทะเบียนฟุตซอลครบ 20 คนแล้ว')
+    }
     if (error.message?.includes('check') || error.code === '42501') {
       throw new Error('ลงทะเบียนไม่สำเร็จ — อาจครบโควต้าแล้ว')
     }
     throw error
   }
+  if (typeof registrationId !== 'string') throw new Error('ไม่ได้รับรหัสยืนยันการลงทะเบียน')
 
   const team = TEAM_LIST.find((t) => t.id === input.teamId)
   const posLabel =
     POSITION_OPTIONS.find((p) => p.value === input.position)?.label ?? input.position
   await pushRegistrationToSheet({
     kind: 'athlete',
+    recordId: registrationId,
     sport: input.sport,
     sportLabel: input.sport === 'football' ? 'ฟุตซอล' : 'วอลเลย์บอล',
     teamId: input.teamId,
@@ -270,36 +291,33 @@ export async function submitAttendeeRegistration(input: AttendeeInput): Promise<
     )
   }
 
-  const attendeeRow = {
-    team_id: team.id,
-    full_name: fullName,
-    phone,
-    position_label: positionLabel,
-    subdistrict: input.subdistrict?.trim() || orgName,
-    note,
-  }
-
-  let { error } = await supabase.from('event_attendees').insert(attendeeRow)
-
-  // รองรับฐานข้อมูลช่วงเปลี่ยนผ่านก่อน migration เพิ่ม team_id ถูกนำขึ้นครบ
-  if (error?.code === '42703' && error.message?.includes('team_id')) {
-    const { team_id: _teamId, ...legacyAttendeeRow } = attendeeRow
-    const legacyInsert = await supabase.from('event_attendees').insert(legacyAttendeeRow)
-    error = legacyInsert.error
-  }
+  const subdistrict = input.subdistrict?.trim() || orgName
+  const { data: attendeeId, error } = await supabase.rpc('submit_event_attendee', {
+    p_team_id: team.id,
+    p_full_name: fullName,
+    p_phone: phone,
+    p_position_label: positionLabel,
+    p_subdistrict: subdistrict,
+    p_note: note,
+  })
 
   if (error) {
+    if (error.message?.includes('deadline has passed')) {
+      throw new Error(REGISTRATION_CLOSED_MESSAGE)
+    }
     throw new Error(error.message || 'ลงทะเบียนไม่สำเร็จ')
   }
+  if (typeof attendeeId !== 'string') throw new Error('ไม่ได้รับรหัสยืนยันการลงทะเบียน')
 
   await pushRegistrationToSheet({
     kind: 'attendee',
+    recordId: attendeeId,
     teamId: team.id,
     teamName: orgName,
     fullName,
     phone,
     positionLabel,
-    subdistrict: input.subdistrict?.trim() || orgName,
+    subdistrict,
     note: note ?? '',
   })
 }

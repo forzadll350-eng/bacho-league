@@ -58,6 +58,28 @@ function getSs_() {
   return SpreadsheetApp.openById(SPREADSHEET_ID)
 }
 
+/** ป้องกันค่าจากฟอร์มถูกตีความเป็นสูตรใน Google Sheets */
+function safeCell_(value, maxLength) {
+  var text = String(value == null ? '' : value).trim()
+  if (maxLength && text.length > maxLength) text = text.slice(0, maxLength)
+  return /^[=+\-@]/.test(text) ? "'" + text : text
+}
+
+function validatePayload_(d) {
+  if (!d || (d.kind !== 'athlete' && d.kind !== 'attendee')) {
+    throw new Error('ไม่รองรับคำสั่งนี้')
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(String(d.recordId || ''))) {
+    throw new Error('ไม่มีรหัสรายการที่ถูกต้อง')
+  }
+  if (!String(d.fullName || '').trim() || String(d.fullName).length > 120) {
+    throw new Error('ชื่อไม่ถูกต้อง')
+  }
+  if (d.kind === 'athlete' && d.sport !== 'football' && d.sport !== 'volleyball') {
+    throw new Error('ชนิดกีฬาไม่ถูกต้อง')
+  }
+}
+
 function nextSeq_(sheet) {
   var last = sheet.getLastRow()
   if (last < DATA_START) return 1
@@ -121,7 +143,7 @@ function appendAthlete_(d) {
   // ไม่บล็อกวอลเลย์ที่นี่ — แอปคัดบาเระใต้ออกแล้ว
   // (เคยใช้ regex แล้วไปชนชื่อไทยผิดใน Apps Script)
 
-  var org = canonicalOrgName_(d.teamName || '')
+  var org = safeCell_(canonicalOrgName_(d.teamName || ''), 120)
   var existing = findAthleteRow_(sheet, d.fullName || '', org)
   var row = existing || firstEmptyRow_(sheet, 3)
   var seq = existing ? sheet.getRange(row, 1).getValue() || nextSeq_(sheet) : nextSeq_(sheet)
@@ -129,14 +151,14 @@ function appendAthlete_(d) {
     [
       seq,
       org,
-      d.fullName || '',
-      d.positionLabel || d.position || '',
+      safeCell_(d.fullName, 120),
+      safeCell_(d.positionLabel || d.position || '', 120),
       d.age || '',
-      d.jerseyNumber || '',
-      d.photoUrl || '',
+      safeCell_(d.jerseyNumber || '', 20),
+      safeCell_(d.photoUrl || '', 1000),
     ],
   ])
-  refreshByOrgLists(org)
+  refreshByOrgLists()
   return { sheet: SHEET[sport], row: row, action: existing ? 'update' : 'insert' }
 }
 
@@ -147,12 +169,12 @@ function appendAttendee_(d) {
   var sheet = getSs_().getSheetByName(SHEET.attendee)
   if (!sheet) throw new Error('ไม่พบชีต ' + SHEET.attendee)
 
-  var fullName = d.fullName || ''
-  var phone = d.phone || ''
-  var positionLabel = String(d.positionLabel || d.position || '').trim()
-  var note = d.note || ''
-  var org = canonicalOrgName_(d.teamName || d.orgName || '')
-  var subdistrict = String(d.subdistrict || '').trim() || org
+  var fullName = safeCell_(d.fullName, 120)
+  var phone = safeCell_(d.phone, 20)
+  var positionLabel = safeCell_(d.positionLabel || d.position || '', 120)
+  var note = safeCell_(d.note || '', 500)
+  var org = safeCell_(canonicalOrgName_(d.teamName || d.orgName || ''), 120)
+  var subdistrict = safeCell_(d.subdistrict || '', 120) || org
 
   if (!org && /^(อบต\.|เทศบาล)/.test(subdistrict)) {
     org = canonicalOrgName_(subdistrict)
@@ -167,7 +189,7 @@ function appendAttendee_(d) {
   sheet.getRange(row, 1, 1, 7).setValues([
     [seq, org, fullName, phone, positionLabel, subdistrict, note],
   ])
-  refreshByOrgLists(org)
+  refreshByOrgLists()
   return {
     sheet: SHEET.attendee,
     row: row,
@@ -194,7 +216,8 @@ function clearRegistrationSheets() {
     if (!sheet) continue
     var last = sheet.getLastRow()
     if (last >= DATA_START) {
-      sheet.getRange(DATA_START, 1, last - DATA_START + 1, sheet.getLastColumn()).clearContent()
+      // ข้อมูลที่เว็บเขียนมีเฉพาะ A:G; คอลัมน์ H เป็นต้นไปเป็นสูตร/ข้อมูลจัดการ
+      sheet.getRange(DATA_START, 1, last - DATA_START + 1, 7).clearContent()
     }
     cleared.push(names[i])
   }
@@ -362,25 +385,22 @@ function fixBareNueaSpelling() {
     if (!sheet) continue
     var range = sheet.getDataRange()
     var vals = range.getValues()
-    var dirty = false
+    var formulas = range.getFormulas()
     for (var r = 0; r < vals.length; r++) {
       for (var c = 0; c < vals[r].length; c++) {
+        if (formulas[r][c]) continue
         if (typeof vals[r][c] !== 'string') continue
         var next = canonicalOrgName_(vals[r][c])
         if (next !== vals[r][c]) {
-          vals[r][c] = next
-          dirty = true
+          sheet.getRange(r + 1, c + 1).setValue(next)
           changed++
         }
       }
     }
-    if (dirty) range.setValues(vals)
 
     // ดรอปดาวน์ B4 ในชีตรวม
     if (names[i] === SHEET.byOrg) {
       try {
-        var rules = sheet.getRange('B4').getDataValidations()
-        // getDataValidations returns 2D; use getDataValidation
         var rule = sheet.getRange('B4').getDataValidation()
         if (rule) {
           var criteria = rule.getCriteriaType()
@@ -403,39 +423,17 @@ function fixBareNueaSpelling() {
 }
 
 function doPost(e) {
+  var lock = LockService.getScriptLock()
   try {
     var d = parseBody_(e)
-    if (d.kind === 'clear_registrations') {
-      var cleared = clearRegistrationSheets()
-      return ContentService.createTextOutput(
-        JSON.stringify({ ok: true, action: 'clear', sheets: cleared.cleared }),
-      ).setMimeType(ContentService.MimeType.JSON)
+    var expected = PropertiesService.getScriptProperties().getProperty('WEBHOOK_SECRET')
+    if (!expected || String(d.secret || '') !== expected) {
+      throw new Error('ไม่ได้รับอนุญาต')
     }
-    if (d.kind === 'fix_bare_nuea' || d.kind === 'fix_spelling') {
-      var fixed = fixBareNueaSpelling()
-      var refreshed = refreshByOrgLists()
-      return ContentService.createTextOutput(
-        JSON.stringify({
-          ok: true,
-          action: 'fix_bare_nuea',
-          changed: fixed.changed,
-          org: refreshed.org,
-        }),
-      ).setMimeType(ContentService.MimeType.JSON)
-    }
-    if (d.kind === 'refresh_by_org' || d.kind === 'fix_by_org_formulas') {
-      var refreshed2 = refreshByOrgLists()
-      return ContentService.createTextOutput(
-        JSON.stringify({ ok: true, action: 'refresh_by_org', org: refreshed2.org }),
-      ).setMimeType(ContentService.MimeType.JSON)
-    }
-    if (d.kind === 'sync_athlete') {
-      // เติมแถวที่ลงในแอปแล้วแต่ชีตว่าง
-      var sync = appendAthlete_(d)
-      return ContentService.createTextOutput(
-        JSON.stringify({ ok: true, sheet: sync.sheet, row: sync.row, action: 'sync' }),
-      ).setMimeType(ContentService.MimeType.JSON)
-    }
+    validatePayload_(d)
+    delete d.secret
+
+    lock.waitLock(10000)
     var result = d.kind === 'attendee' ? appendAttendee_(d) : appendAthlete_(d)
 
     return ContentService.createTextOutput(
@@ -445,12 +443,14 @@ function doPost(e) {
     return ContentService.createTextOutput(
       JSON.stringify({ ok: false, error: String(err) }),
     ).setMimeType(ContentService.MimeType.JSON)
+  } finally {
+    if (lock.hasLock()) lock.releaseLock()
   }
 }
 
 function doGet() {
   return ContentService.createTextOutput(
-    'Bacho League → Sheet OK · ' + SPREADSHEET_ID + ' · build=v7-noblock',
+    'Bacho League → Sheet OK · ' + SPREADSHEET_ID + ' · build=v8-secure',
   )
 }
 

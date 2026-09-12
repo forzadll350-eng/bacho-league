@@ -6,7 +6,7 @@ export function LiveFeedStatus() {
   return (
     <div className="feed-status">
       <div className="feed-left">
-        <span className="online" aria-hidden />
+        <span className={usingLiveData ? 'online' : undefined} aria-hidden />
         <span>{loading ? 'กำลังโหลด…' : updateText}</span>
       </div>
       <span className="official">{usingLiveData ? 'ผลอย่างเป็นทางการ' : 'Offline'}</span>

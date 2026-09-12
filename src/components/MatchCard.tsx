@@ -64,7 +64,7 @@ function useLiveElapsed(match: Match) {
 
   if (!playing) return null
   if (match.status === 'halftime') return 'พักครึ่ง'
-  return formatElapsedClock(match.scheduledAt, now)
+  return match.startedAt ? formatElapsedClock(match.startedAt, now) : '0:00'
 }
 
 export function MatchCard({ match }: { match: Match }) {

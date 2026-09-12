@@ -78,9 +78,11 @@ if (
 const indexHtml = readFileSync(resolve(ROOT, 'index.html'), 'utf8')
 const teamsSource = readFileSync(resolve(ROOT, 'src', 'data', 'teams.ts'), 'utf8')
 const webhookSource = readFileSync(resolve(ROOT, 'src', 'lib', 'googleSheetsWebhook.ts'), 'utf8')
+const webhookProxy = readFileSync(resolve(ROOT, 'api', 'google-sheets-registration.js'), 'utf8')
 if (!indexHtml.includes('bacho-league-theme')) fail('missing public-app production marker')
 if (!teamsSource.includes("id: 'bacho-league'")) fail('missing league data marker')
-if (!webhookSource.includes('VITE_GOOGLE_SHEETS_WEBHOOK_URL')) fail('missing Sheets webhook marker')
+if (!webhookSource.includes('/api/google-sheets-registration')) fail('missing Sheets client proxy marker')
+if (!webhookProxy.includes('GOOGLE_SHEETS_SHARED_SECRET')) fail('missing Sheets server proxy marker')
 
 const projectInspection = capture(npxCommand, [
   'vercel',

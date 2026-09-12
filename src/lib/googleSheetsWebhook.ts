@@ -1,11 +1,12 @@
 /**
  * ส่งแถวลงทะเบียนไป Google Apps Script Web App (append ลง Sheet)
- * ตั้งค่า VITE_GOOGLE_SHEETS_WEBHOOK_URL ใน .env / Vercel
+ * ส่งผ่าน server-side proxy เพื่อไม่เปิดเผย URL/secret ของ Apps Script ใน bundle
  * ล้มเหลวไม่กระทบการลงทะเบียนในแอป
  */
 
 export type SheetAthletePayload = {
   kind: 'athlete'
+  recordId: string
   sport: 'football' | 'volleyball'
   sportLabel: string
   teamId: string
@@ -20,6 +21,7 @@ export type SheetAthletePayload = {
 
 export type SheetAttendeePayload = {
   kind: 'attendee'
+  recordId: string
   teamId: string
   teamName: string
   fullName: string
@@ -31,13 +33,6 @@ export type SheetAttendeePayload = {
 
 export type SheetRegistrationPayload = SheetAthletePayload | SheetAttendeePayload
 
-const webhookUrl = () =>
-  (import.meta.env.VITE_GOOGLE_SHEETS_WEBHOOK_URL as string | undefined)?.trim() || ''
-
-export function isGoogleSheetsWebhookConfigured(): boolean {
-  return Boolean(webhookUrl())
-}
-
 type SheetResponse = {
   ok?: boolean
   error?: string
@@ -47,14 +42,10 @@ type SheetResponse = {
 export async function pushRegistrationToSheet(
   payload: SheetRegistrationPayload,
 ): Promise<void> {
-  const url = webhookUrl()
-  if (!url) return
-
   try {
-    // text/plain หลีก preflight; ไม่ใช้ no-cors เพื่อให้ body ไปถึง Apps Script ครบ
-    const response = await fetch(url, {
+    const response = await fetch('/api/google-sheets-registration', {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...payload,
         submittedAt: new Date().toISOString(),

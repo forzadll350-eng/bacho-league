@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 import type { MatchRow, MatchUpdate, SportType, TeamRow } from '../types'
 
 const MATCH_SELECT =
-  'id, sport, status, home_score, away_score, home_points, away_points, points_set, set_scores, live_clock, period_label, live_stream_url, group_code, stage, court_label, updated_at, scheduled_at, ends_at, venue, hide_schedule_time, home_team_id, away_team_id, home:teams!home_team_id(id, name_th, name_en, short_name), away:teams!away_team_id(id, name_th, name_en, short_name)'
+  'id, sport, status, home_score, away_score, home_points, away_points, points_set, set_scores, live_clock, period_label, group_code, stage, court_label, updated_at, scheduled_at, started_at, ends_at, venue, hide_schedule_time, home_team_id, away_team_id, home:teams!home_team_id(id, name_th, name_en, short_name), away:teams!away_team_id(id, name_th, name_en, short_name)'
 
 type RawTeam = TeamRow | TeamRow[] | null
 
@@ -69,13 +69,6 @@ export async function fetchMatch(id: string): Promise<MatchRow> {
   return mapMatch(data as RawMatch)
 }
 
-export async function updateMatch(id: string, patch: MatchUpdate): Promise<void> {
-  if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
-
-  const { error } = await supabase.from('matches').update(patch).eq('id', id)
-  if (error) throw error
-}
-
 export async function fetchMatchGoals(matchId: string): Promise<GoalRow[]> {
   if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
   const { data, error } = await supabase
@@ -87,21 +80,24 @@ export async function fetchMatchGoals(matchId: string): Promise<GoalRow[]> {
   return (data ?? []) as GoalRow[]
 }
 
-export async function replaceMatchGoals(matchId: string, goals: GoalDraft[]): Promise<void> {
+export async function saveMatchState(
+  matchId: string,
+  patch: MatchUpdate,
+  goals: GoalDraft[] | null,
+): Promise<void> {
   if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
-  const { error: delError } = await supabase.from('match_goals').delete().eq('match_id', matchId)
-  if (delError) throw delError
-  if (!goals.length) return
-  const { error } = await supabase.from('match_goals').insert(
-    goals.map((g) => ({
-      match_id: matchId,
+  const goalPayload = goals?.map((g) => ({
       team_id: g.team_id,
       jersey_number: g.jersey_number.trim(),
       minute_approx: g.minute_approx,
       registration_id: g.registration_id,
       player_name: g.player_name,
-    })),
-  )
+    })) ?? null
+  const { error } = await supabase.rpc('save_match_state', {
+    p_match_id: matchId,
+    p_patch: patch,
+    p_goals: goalPayload,
+  })
   if (error) throw error
 }
 
