@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 import type { MatchRow, MatchUpdate, SportType, TeamRow } from '../types'
 
 const MATCH_SELECT =
-  'id, sport, status, home_score, away_score, live_clock, period_label, live_stream_url, group_code, stage, court_label, updated_at, scheduled_at, ends_at, venue, home_team_id, away_team_id, home:teams!home_team_id(id, name_th, name_en, short_name), away:teams!away_team_id(id, name_th, name_en, short_name)'
+  'id, sport, status, home_score, away_score, home_points, away_points, points_set, set_scores, live_clock, period_label, live_stream_url, group_code, stage, court_label, updated_at, scheduled_at, ends_at, venue, hide_schedule_time, home_team_id, away_team_id, home:teams!home_team_id(id, name_th, name_en, short_name), away:teams!away_team_id(id, name_th, name_en, short_name)'
 
 type RawTeam = TeamRow | TeamRow[] | null
 
@@ -122,5 +122,5 @@ export async function fetchLeadPoints(sport: SportType): Promise<number | null> 
 
 export function teamName(team: MatchRow['home']): string {
   if (!team) return '—'
-  return team.short_name || team.name_th
+  return team.name_th || team.short_name
 }

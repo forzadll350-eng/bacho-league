@@ -25,6 +25,10 @@ export interface MatchRow {
   status: MatchStatus
   home_score: number
   away_score: number
+  home_points?: number
+  away_points?: number
+  points_set?: number
+  set_scores?: Record<string, { home?: number; away?: number }> | null
   live_clock: string | null
   period_label: string | null
   live_stream_url: string | null
@@ -35,6 +39,7 @@ export interface MatchRow {
   scheduled_at: string
   ends_at: string | null
   venue: string | null
+  hide_schedule_time?: boolean
   home_team_id: string
   away_team_id: string
   home: TeamRow | null
@@ -45,11 +50,16 @@ export interface MatchUpdate {
   status: MatchStatus
   home_score: number
   away_score: number
+  home_points?: number
+  away_points?: number
+  points_set?: number
+  set_scores?: Record<string, { home: number; away: number }>
   live_clock: string | null
   period_label: string | null
   live_stream_url: string | null
   scheduled_at?: string
   ends_at?: string | null
+  hide_schedule_time?: boolean
   updated_at: string
 }
 
@@ -63,6 +73,6 @@ export const STATUS_LABELS: Record<MatchStatus, string> = {
 }
 
 export const SPORT_LABELS: Record<SportType, string> = {
-  football: 'ฟุตบอล',
+  football: 'ฟุตซอล',
   volleyball: 'วอลเลย์บอล',
 }

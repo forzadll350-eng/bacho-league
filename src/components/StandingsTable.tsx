@@ -1,4 +1,4 @@
-import type { StandingRow } from '../types/sports'
+import type { SportType, StandingRow } from '../types/sports'
 
 function fmtGd(n: number | undefined) {
   if (n == null) return '0'
@@ -10,12 +10,15 @@ export function StandingsTable({
   rows,
   limit,
   title,
+  sport = 'football',
 }: {
   rows: StandingRow[]
   limit?: number
   title?: string
+  sport?: SportType
 }) {
   const list = limit ? rows.slice(0, limit) : rows
+  const isV = sport === 'volleyball'
 
   return (
     <div className="card live-table">
@@ -24,8 +27,8 @@ export function StandingsTable({
         <div>#</div>
         <div>ทีม</div>
         <div>ลง</div>
-        <div>ได้</div>
-        <div>เสีย</div>
+        <div>{isV ? 'เซตได้' : 'ได้'}</div>
+        <div>{isV ? 'เซตเสีย' : 'เสีย'}</div>
         <div>+/−</div>
         <div>แต้ม</div>
       </div>

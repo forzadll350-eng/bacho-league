@@ -5,7 +5,7 @@ insert into public.teams (id, name_th, name_en, short_name, crest_url, org_th, s
   ('palukasamoh', 'อบต.ปะลุกาสาเมาะ', 'SAO Palukasamoh', 'PK', '/crests/palukasamoh.webp', 'อบต.ปะลุกาสาเมาะ', 2),
   ('tonsai', 'เทศบาลตำบลต้นไทร', 'Tonsai Municipality', 'TS', '/crests/tonsai.webp', 'เทศบาลตำบลต้นไทร', 3),
   ('barehtai', 'อบต.บาเระใต้', 'SAO Bare Tai', 'BT', '/crests/barehtai.webp', 'อบต.บาเระใต้', 4),
-  ('bare-nuea', 'อบต.บาเราะเหนือ', 'SAO Bare Nuea', 'BN', '/crests/bare-nuea.webp', 'อบต.บาเราะเหนือ', 5),
+  ('bare-nuea', 'อบต.บาเระเหนือ', 'SAO Bare Nuea', 'BN', '/crests/bare-nuea.webp', 'อบต.บาเระเหนือ', 5),
   ('bacho-sao', 'อบต.บาเจาะ', 'SAO Bacho', 'BS', '/crests/bacho-sao.webp', 'อบต.บาเจาะ', 6),
   ('kayoh-mati', 'อบต.กาเยาะมาตี', 'SAO Kayoh Mati', 'KM', '/crests/kayoh-mati.webp', 'อบต.กาเยาะมาตี', 7),
   ('bacho-municipal', 'เทศบาลตำบลบาเจาะ', 'Bacho Municipality', 'BM', '/crests/bacho-municipal.webp', 'เทศบาลตำบลบาเจาะ', 8);

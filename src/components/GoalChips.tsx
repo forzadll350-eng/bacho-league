@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState, type SyntheticEvent } from 'react'
+import { createPortal } from 'react-dom'
 import type { MatchGoal } from '../types/sports'
 
 function goalLabel(g: MatchGoal) {
@@ -16,10 +17,26 @@ export function GoalChips({
 }) {
   const [preview, setPreview] = useState<MatchGoal | null>(null)
 
+  useEffect(() => {
+    if (!preview) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreview(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [preview])
+
   if (!goals.length) return null
 
   const homeGoals = goals.filter((g) => g.teamId === homeTeamId)
   const awayGoals = goals.filter((g) => g.teamId !== homeTeamId)
+
+  function closePreview(e?: SyntheticEvent) {
+    e?.preventDefault()
+    e?.stopPropagation()
+    // หน่วงนิดหนึ่งกันคลิกทะลุไปเปิดแถวผู้ยิงด้านล่างอีกครั้ง (มือถือ)
+    window.setTimeout(() => setPreview(null), 0)
+  }
 
   return (
     <>
@@ -55,33 +72,53 @@ export function GoalChips({
         </div>
       </div>
 
-      {preview ? (
-        <>
-          <button
-            type="button"
-            className="scrim show"
-            aria-label="ปิด"
-            onClick={() => setPreview(null)}
-          />
-          <div className="player-preview" role="dialog" aria-modal="true" aria-label="รายละเอียดผู้ยิง">
-            <button type="button" className="text-btn player-preview-close" onClick={() => setPreview(null)}>
-              ปิด
-            </button>
-            {preview.photoUrl ? (
-              <img src={preview.photoUrl} alt="" className="player-preview-photo" draggable={false} />
-            ) : (
-              <div className="player-preview-jersey">#{preview.jerseyNumber}</div>
-            )}
-            <div className="player-preview-name">
-              {preview.playerName ?? `เบอร์ ${preview.jerseyNumber}`}
-            </div>
-            <div className="player-preview-meta">
-              เบอร์ {preview.jerseyNumber}
-              {preview.minuteApprox != null ? ` · นาที ~${preview.minuteApprox}'` : ''}
-            </div>
-          </div>
-        </>
-      ) : null}
+      {preview
+        ? createPortal(
+            <div className="player-preview-root">
+              <button
+                type="button"
+                className="player-preview-scrim"
+                aria-label="ปิด"
+                onPointerDown={closePreview}
+                onClick={closePreview}
+              />
+              <div
+                className="player-preview"
+                role="dialog"
+                aria-modal="true"
+                aria-label="รายละเอียดผู้ยิง"
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  className="text-btn player-preview-close"
+                  onPointerDown={closePreview}
+                  onClick={closePreview}
+                >
+                  ปิด
+                </button>
+                {preview.photoUrl ? (
+                  <img
+                    src={preview.photoUrl}
+                    alt=""
+                    className="player-preview-photo"
+                    draggable={false}
+                  />
+                ) : (
+                  <div className="player-preview-jersey">#{preview.jerseyNumber}</div>
+                )}
+                <div className="player-preview-name">
+                  {preview.playerName ?? `เบอร์ ${preview.jerseyNumber}`}
+                </div>
+                <div className="player-preview-meta">
+                  เบอร์ {preview.jerseyNumber}
+                  {preview.minuteApprox != null ? ` · นาที ~${preview.minuteApprox}'` : ''}
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   )
 }
@@ -100,6 +137,8 @@ function GoalLine({
       type="button"
       className={`goal-line ${side}`}
       onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
         e.currentTarget.blur()
         onOpen()
       }}

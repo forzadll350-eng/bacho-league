@@ -180,6 +180,73 @@ button {
   box-shadow: 0 0 0 1px var(--line);
 }
 
+.group-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.group-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: var(--panel);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.group-toggle button.active {
+  color: var(--ink);
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 14%, var(--panel));
+}
+
+.group-count {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
+.match-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.match-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.match-section-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.match-section-head p {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.match-section-count {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--muted2);
+  font-variant-numeric: tabular-nums;
+}
+
 .match-list {
   display: flex;
   flex-direction: column;
@@ -188,7 +255,7 @@ button {
 
 .match-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 10px;
   align-items: center;
   width: 100%;
@@ -198,6 +265,30 @@ button {
   padding: 12px;
   color: var(--ink);
   text-align: left;
+}
+
+.match-ord {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--chip);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.match-ord-num {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.match-round {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .match-row:active {
@@ -229,6 +320,17 @@ button {
 .score {
   font-variant-numeric: tabular-nums;
   color: var(--ink);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+
+.score-points {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 2px;
 }
 
 .meta {
@@ -347,6 +449,22 @@ button {
   border-color: var(--blue);
 }
 
+.checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.checkbox-field input {
+  width: auto;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -437,6 +555,60 @@ button {
   letter-spacing: -0.03em;
 }
 
+.score-side .mid {
+  font-size: 1.35rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--muted);
+}
+
+.score-edit-points .score-btns button {
+  width: 36px;
+  height: 36px;
+}
+
+.set-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.set-picker-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.set-picker-btn.active {
+  border-color: var(--accent, #2f6fed);
+  background: color-mix(in srgb, var(--accent, #2f6fed) 12%, var(--panel2));
+}
+
+.set-picker-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.set-picker-btn.active .set-picker-label {
+  color: var(--ink);
+}
+
+.set-picker-score {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .score-btns {
   display: flex;
   gap: 6px;
@@ -494,6 +666,27 @@ button {
   align-items: center;
 }
 
+.goal-edit-row-simple {
+  grid-template-columns: 1.1fr 88px minmax(0, 1.6fr) 56px 36px;
+}
+
+.goal-locked-name {
+  min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goal-locked-min {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+}
+
 .goal-edit-row input,
 .goal-edit-row select {
   width: 100%;
@@ -509,5 +702,9 @@ button {
 @media (max-width: 720px) {
   .goal-edit-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .goal-edit-row-simple {
+    grid-template-columns: 1fr 90px;
   }
 }

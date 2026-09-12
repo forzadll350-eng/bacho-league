@@ -11,6 +11,8 @@ const ITEMS: { id: AppPage; label: string; icon: typeof Home }[] = [
 
 export function BottomNavigation() {
   const { page, setPage } = useApp()
+  const activePage =
+    page === 'register' || page === 'attendee' || page === 'vote' ? 'more' : page
 
   return (
     <nav className="bottom-nav" aria-label="เมนูหลัก">
@@ -18,8 +20,8 @@ export function BottomNavigation() {
         <button
           key={id}
           type="button"
-          className={`nav-btn${page === id ? ' active' : ''}`}
-          aria-current={page === id ? 'page' : undefined}
+          className={`nav-btn${activePage === id ? ' active' : ''}`}
+          aria-current={activePage === id ? 'page' : undefined}
           onClick={() => setPage(id)}
         >
           <Icon size={19} strokeWidth={1.8} />

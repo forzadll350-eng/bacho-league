@@ -1,6 +1,4 @@
--- Reschedule Futsal Group A to official 6-match day plan (21 ก.ย. 2569)
--- Round 1 → break 20m → Round 2 → break 20m → Round 3
--- (tonsai ↔ lubosawo swapped vs original announcement)
+-- Swap tonsai ↔ lubosawo positions in Futsal Group A
 
 update public.matches set
   home_team_id = 'lubosawo',

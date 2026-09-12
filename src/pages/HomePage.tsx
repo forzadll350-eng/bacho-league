@@ -53,6 +53,8 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
       clock: `สาย ${group}`,
       score: '—',
       sets: undefined,
+      pointsScore: undefined,
+      pointsSetLabel: undefined,
       stats: [],
     }
   }
@@ -63,10 +65,15 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
     home: match.homeTeam,
     away: match.awayTeam,
     score: `${match.homeScore} - ${match.awayScore}`,
+    pointsScore:
+      match.sport === 'volleyball'
+        ? `${match.homePoints ?? 0} - ${match.awayPoints ?? 0}`
+        : undefined,
+    pointsSetLabel: match.sport === 'volleyball' ? `เซต ${match.pointsSet ?? 1}` : undefined,
     state:
       match.periodLabel ??
-      (playing ? 'กำลังแข่ง' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
-    clock: formatClock(match),
+      (playing ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
+    clock: match.hideScheduleTime ? 'กำลังแข่งขัน' : formatClock(match),
     liveStreamUrl: undefined,
     league: [base.league.split('·')[0]?.trim() || base.league, `สาย ${group}`, match.courtLabel]
       .filter(Boolean)
@@ -76,8 +83,8 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
       match.sport === 'volleyball'
         ? ([
             [`${match.homeScore} - ${match.awayScore}`, 'เซต'],
+            [`${match.homePoints ?? 0} - ${match.awayPoints ?? 0}`, `เซต ${match.pointsSet ?? 1}`],
             [match.periodLabel ?? '—', 'สถานะ'],
-            ['15', 'แต้มต่อเซต'],
           ] as [string, string][])
         : [],
   }
@@ -148,6 +155,7 @@ export function HomePage() {
         matchId={featured?.id}
         matchStatus={featured?.status}
         scheduledAt={featured?.scheduledAt}
+        hideScheduleTime={featured?.hideScheduleTime}
       />
 
       <div className="section-head">
@@ -187,7 +195,7 @@ export function HomePage() {
                 </div>
               </div>
             ) : (
-              <p className="lt-empty">ยังไม่มีผู้ยิง — แอดมินจะบันทึกเบอร์เสื้อหลังแข่ง</p>
+              <p className="lt-empty">ยังไม่มีผู้ยิง</p>
             )}
           </div>
 
@@ -207,7 +215,11 @@ export function HomePage() {
           ดูตารางเต็ม
         </button>
       </div>
-      <StandingsTable rows={groupTable.length ? groupTable : data.table} limit={4} />
+      <StandingsTable
+        rows={groupTable.length ? groupTable : data.table}
+        limit={4}
+        sport={sport}
+      />
 
       <div className="section-head">
         <h2>ภาพรวม</h2>

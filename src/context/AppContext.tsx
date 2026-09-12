@@ -77,6 +77,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const fromQuery = params.get('page')
+    const fromHash = window.location.hash.replace(/^#/, '')
+    const raw = (fromQuery || fromHash || '').trim().toLowerCase()
+    const kind = (params.get('kind') || params.get('mode') || '').trim().toLowerCase()
+    if (
+      raw === 'attendee' ||
+      raw === 'participant' ||
+      raw === 'เข้าร่วม' ||
+      kind === 'attendee' ||
+      kind === 'participant'
+    ) {
+      setPageState('attendee')
+    } else if (raw === 'register' || raw === 'ลงทะเบียน' || raw === 'athlete') {
+      setPageState('register')
+    }
+  }, [])
+
   const setTheme = useCallback((next: ThemeMode) => {
     setThemeState(next)
     applyTheme(next)

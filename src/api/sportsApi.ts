@@ -36,6 +36,10 @@ type DbMatch = {
   status: MatchStatus
   home_score: number
   away_score: number
+  home_points?: number | null
+  away_points?: number | null
+  points_set?: number | null
+  set_scores?: Record<string, { home?: number; away?: number }> | null
   live_clock: string | null
   period_label: string | null
   detail: boolean
@@ -43,6 +47,7 @@ type DbMatch = {
   group_code: string | null
   stage: string | null
   court_label: string | null
+  hide_schedule_time?: boolean | null
 }
 
 type DbStanding = {
@@ -201,7 +206,7 @@ function mapMatch(
   goalsByMatch: Map<string, MatchGoal[]>,
 ): Match {
   const { homeId, awayId } = resolveKnockoutTeamIds(row)
-  return {
+  const base: Match = {
     id: row.id,
     sport: row.sport,
     competitionId: row.competition_id,
@@ -214,6 +219,14 @@ function mapMatch(
     status: row.status,
     homeScore: row.home_score,
     awayScore: row.away_score,
+    homePoints: row.home_points ?? undefined,
+    awayPoints: row.away_points ?? undefined,
+    pointsSet:
+      row.points_set === 2 || row.points_set === 3
+        ? row.points_set
+        : row.sport === 'volleyball'
+          ? 1
+          : undefined,
     liveClock: row.live_clock ?? undefined,
     periodLabel: row.period_label ?? undefined,
     detail: false,
@@ -224,8 +237,10 @@ function mapMatch(
         ? row.stage
         : undefined,
     courtLabel: row.court_label ?? undefined,
+    hideScheduleTime: Boolean(row.hide_schedule_time),
     goals: goalsByMatch.get(row.id) ?? [],
   }
+  return base
 }
 
 function mapStanding(row: DbStanding, teams: Map<string, Team>): StandingRow {
@@ -257,7 +272,8 @@ function mapNotification(row: DbNotification): AppNotification {
 }
 
 function liveMatch(matches: Match[]): Match | undefined {
-  return matches.find((m) => m.status === 'live' || m.status === 'halftime') ?? matches[0]
+  const list = matches.filter(Boolean)
+  return list.find((m) => m.status === 'live' || m.status === 'halftime') ?? list[0]
 }
 
 function buildHero(sport: SportType, match: Match | undefined): LiveHeroData {
@@ -274,6 +290,11 @@ function buildHero(sport: SportType, match: Match | undefined): LiveHeroData {
     home: match.homeTeam,
     away: match.awayTeam,
     score: `${match.homeScore} - ${match.awayScore}`,
+    pointsScore:
+      sport === 'volleyball'
+        ? `${match.homePoints ?? 0} - ${match.awayPoints ?? 0}`
+        : undefined,
+    pointsSetLabel: sport === 'volleyball' ? `เซต ${match.pointsSet ?? 1}` : undefined,
     state:
       match.periodLabel ??
       (live ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
@@ -287,8 +308,8 @@ function buildHero(sport: SportType, match: Match | undefined): LiveHeroData {
       ...common,
       stats: [
         [`${match.homeScore} - ${match.awayScore}`, 'เซต'],
+        [`${match.homePoints ?? 0} - ${match.awayPoints ?? 0}`, `เซต ${match.pointsSet ?? 1}`],
         [match.periodLabel ?? '—', 'สถานะ'],
-        ['15', 'แต้มต่อเซต'],
       ],
     }
   }
@@ -296,30 +317,96 @@ function buildHero(sport: SportType, match: Match | undefined): LiveHeroData {
   return common
 }
 
-function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): StandingRow[] {
-  const scored = matches.filter(
-    (m) => m.status === 'finished' || m.status === 'live' || m.status === 'halftime',
-  )
+type TeamMatchStats = {
+  played: number
+  won: number
+  drawn: number
+  lost: number
+  points: number
+  goalsFor: number
+  goalsAgainst: number
+}
 
-  return table.map((row) => {
-    let goalsFor = 0
-    let goalsAgainst = 0
-    for (const m of scored) {
-      if (m.homeTeam.id === row.team.id) {
-        goalsFor += m.homeScore
-        goalsAgainst += m.awayScore
-      } else if (m.awayTeam.id === row.team.id) {
-        goalsFor += m.awayScore
-        goalsAgainst += m.homeScore
-      }
+function emptyTeamStats(): TeamMatchStats {
+  return { played: 0, won: 0, drawn: 0, lost: 0, points: 0, goalsFor: 0, goalsAgainst: 0 }
+}
+
+/** คิดแต้มจากแมตช์สายที่จบแล้ว: ชนะ 3 · เสมอ 1 · แพ้ 0 (รอบตัดเชือกไม่นับ) */
+function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): StandingRow[] {
+  const stats = new Map<string, TeamMatchStats>()
+  for (const row of table) stats.set(row.team.id, emptyTeamStats())
+
+  for (const m of matches) {
+    const home = stats.get(m.homeTeam.id)
+    const away = stats.get(m.awayTeam.id)
+    if (!home || !away) continue
+
+    const scored =
+      m.status === 'finished' || m.status === 'live' || m.status === 'halftime'
+    if (scored) {
+      home.goalsFor += m.homeScore
+      home.goalsAgainst += m.awayScore
+      away.goalsFor += m.awayScore
+      away.goalsAgainst += m.homeScore
     }
+
+    const countsForPoints =
+      m.status === 'finished' &&
+      Boolean(m.groupCode) &&
+      m.stage !== 'semi' &&
+      m.stage !== 'final'
+    if (!countsForPoints) continue
+
+    home.played += 1
+    away.played += 1
+    if (m.homeScore > m.awayScore) {
+      home.won += 1
+      home.points += 3
+      away.lost += 1
+    } else if (m.homeScore < m.awayScore) {
+      away.won += 1
+      away.points += 3
+      home.lost += 1
+    } else {
+      home.drawn += 1
+      away.drawn += 1
+      home.points += 1
+      away.points += 1
+    }
+  }
+
+  const enriched = table.map((row) => {
+    const s = stats.get(row.team.id) ?? emptyTeamStats()
     return {
       ...row,
-      goalsFor,
-      goalsAgainst,
-      goalDifference: goalsFor - goalsAgainst,
+      played: s.played,
+      won: s.won,
+      drawn: s.drawn,
+      lost: s.lost,
+      points: s.points,
+      goalsFor: s.goalsFor,
+      goalsAgainst: s.goalsAgainst,
+      goalDifference: s.goalsFor - s.goalsAgainst,
     }
   })
+
+  // อันดับในสายตามแต้ม — แต้มเท่ากันคงลำดับเดิม (จับฉลากทำมือ)
+  const byGroup = new Map<string, StandingRow[]>()
+  for (const row of enriched) {
+    const key = row.groupCode ?? '_'
+    const list = byGroup.get(key) ?? []
+    list.push(row)
+    byGroup.set(key, list)
+  }
+
+  const ranked: StandingRow[] = []
+  for (const list of byGroup.values()) {
+    list.sort((a, b) => b.points - a.points || a.rank - b.rank)
+    list.forEach((row, i) => {
+      ranked.push({ ...row, previousRank: row.rank, rank: i + 1 })
+    })
+  }
+  return ranked
 }
 
 function buildTopScorers(matches: Match[]): TopScorer[] {

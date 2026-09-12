@@ -8,7 +8,14 @@ export type MatchStatus =
   | 'postponed'
   | 'cancelled'
 
-export type AppPage = 'home' | 'fixtures' | 'standings' | 'more' | 'register' | 'vote'
+export type AppPage =
+  | 'home'
+  | 'fixtures'
+  | 'standings'
+  | 'more'
+  | 'register'
+  | 'attendee'
+  | 'vote'
 
 export type ThemeMode = 'dark' | 'light'
 
@@ -67,10 +74,16 @@ export interface Match {
   status: MatchStatus
   homeScore: number
   awayScore: number
+  /** Rally points in the current/selected set (volleyball) */
+  homePoints?: number
+  awayPoints?: number
+  /** Which set (1–3) homePoints/awayPoints refer to */
+  pointsSet?: 1 | 2 | 3
   liveClock?: string
   periodLabel?: string
   detail?: boolean
   liveStreamUrl?: string
+  hideScheduleTime?: boolean
   groupCode?: 'A' | 'B'
   stage?: MatchStage
   courtLabel?: string
@@ -186,6 +199,10 @@ export interface LiveHeroData {
   home: Team
   away: Team
   score: string
+  /** Current-set rally points, e.g. "10 - 8" (volleyball) */
+  pointsScore?: string
+  /** Label for which set points belong to, e.g. "เซต 2" */
+  pointsSetLabel?: string
   state: string
   clock: string
   stats: [string, string][]

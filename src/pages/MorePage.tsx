@@ -17,7 +17,15 @@ export function MorePage() {
       <button type="button" className="card menu-cta" onClick={() => setPage('register')}>
         <div>
           <div className="menu-title">ลงทะเบียนนักกีฬา</div>
-          <div className="menu-sub">ฟุตซอลชาย / วอลเลย์หญิง · 21 ก.ย. 2569</div>
+          <div className="menu-sub">ฟุตซอล / วอลเลย์ · ถึง 19 ก.ย. 2569 · 17:00 น.</div>
+        </div>
+        <div className="chev">›</div>
+      </button>
+
+      <button type="button" className="card menu-cta" onClick={() => setPage('attendee')}>
+        <div>
+          <div className="menu-title">ลงทะเบียนผู้เข้าร่วม</div>
+          <div className="menu-sub">งาน 21 ก.ย. 2569 · ถึง 19 ก.ย. 2569 · 17:00 น.</div>
         </div>
         <div className="chev">›</div>
       </button>

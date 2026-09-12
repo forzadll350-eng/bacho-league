@@ -36,11 +36,11 @@ export const TEAMS: Record<string, Team> = {
   },
   bareNuea: {
     id: 'bare-nuea',
-    nameTh: 'อบต.บาเราะเหนือ',
+    nameTh: 'อบต.บาเระเหนือ',
     nameEn: 'SAO Bare Nuea',
     shortName: 'BN',
     crestUrl: '/crests/bare-nuea.webp',
-    orgTh: 'อบต.บาเราะเหนือ',
+    orgTh: 'อบต.บาเระเหนือ',
   },
   bachoSao: {
     id: 'bacho-sao',

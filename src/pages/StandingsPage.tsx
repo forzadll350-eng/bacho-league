@@ -42,12 +42,14 @@ export function StandingsPage() {
       </div>
 
       <div className="standings-stack">
-        <StandingsTable title="สาย A" rows={rowsA} />
-        <StandingsTable title="สาย B" rows={rowsB} />
+        <StandingsTable title="สาย A" rows={rowsA} sport={sport} />
+        <StandingsTable title="สาย B" rows={rowsB} sport={sport} />
       </div>
 
       <p className="standings-note">
-        ได้ / เสีย / +/− ไว้ดูประกอบ · จัดอันดับเมื่อแต้มเท่ากันใช้จับฉลาก
+        {isVolleyball
+          ? 'เซตได้ / เซตเสีย / +/− ไว้ดูประกอบ · ชนะแมตช์ได้ 3 แต้ม · แต้มเท่ากันจับฉลาก'
+          : 'ได้ / เสีย / +/− ไว้ดูประกอบ · จัดอันดับเมื่อแต้มเท่ากันใช้จับฉลาก'}
       </p>
 
       <div className="section-head">

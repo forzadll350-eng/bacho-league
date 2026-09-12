@@ -27,8 +27,11 @@ dist-ssr
 *.sw?
 
 .tmp-*
+tmp-*
 tmp-*.json
 tmp-*.js
+supabase/.temp/
+public/share/*-demo.*
 admin/.env
 admin/dist
 admin/node_modules

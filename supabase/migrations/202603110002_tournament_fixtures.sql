@@ -29,36 +29,37 @@ insert into public.matches (
   id, sport, competition_id, season_id, home_team_id, away_team_id,
   scheduled_at, venue, status, group_code, stage, court_label, detail, period_label
 ) values
-  ('fb-a-1', 'football', 'comp-football', 'season-2569-fb', 'tonsai', 'kayoh-mati',
+  ('fb-a-1', 'football', 'comp-football', 'season-2569-fb', 'lubosawo', 'kayoh-mati',
    '2026-09-21T08:00:00+07:00', 'สนามฟุตซอล สาย A', 'scheduled', 'A', 'group', 'สนาม A', false, 'รอบที่ 1 · นัดที่ 1'),
-  ('fb-a-2', 'football', 'comp-football', 'season-2569-fb', 'lubosawo', 'bacho-municipal',
+  ('fb-a-2', 'football', 'comp-football', 'season-2569-fb', 'tonsai', 'bacho-municipal',
    '2026-09-21T08:35:00+07:00', 'สนามฟุตซอล สาย A', 'scheduled', 'A', 'group', 'สนาม A', false, 'รอบที่ 1 · นัดที่ 2'),
-  ('fb-a-3', 'football', 'comp-football', 'season-2569-fb', 'tonsai', 'lubosawo',
+  ('fb-a-3', 'football', 'comp-football', 'season-2569-fb', 'lubosawo', 'tonsai',
    '2026-09-21T09:30:00+07:00', 'สนามฟุตซอล สาย A', 'scheduled', 'A', 'group', 'สนาม A', false, 'รอบที่ 2 · นัดที่ 3'),
   ('fb-a-4', 'football', 'comp-football', 'season-2569-fb', 'kayoh-mati', 'bacho-municipal',
    '2026-09-21T10:05:00+07:00', 'สนามฟุตซอล สาย A', 'scheduled', 'A', 'group', 'สนาม A', false, 'รอบที่ 2 · นัดที่ 4'),
-  ('fb-a-5', 'football', 'comp-football', 'season-2569-fb', 'tonsai', 'bacho-municipal',
+  ('fb-a-5', 'football', 'comp-football', 'season-2569-fb', 'lubosawo', 'bacho-municipal',
    '2026-09-21T11:00:00+07:00', 'สนามฟุตซอล สาย A', 'scheduled', 'A', 'group', 'สนาม A', false, 'รอบที่ 3 · นัดที่ 5'),
-  ('fb-a-6', 'football', 'comp-football', 'season-2569-fb', 'lubosawo', 'kayoh-mati',
+  ('fb-a-6', 'football', 'comp-football', 'season-2569-fb', 'tonsai', 'kayoh-mati',
    '2026-09-21T11:35:00+07:00', 'สนามฟุตซอล สาย A', 'scheduled', 'A', 'group', 'สนาม A', false, 'รอบที่ 3 · นัดที่ 6');
 
 -- ----- Futsal Group B: barehtai, bare-nuea, bacho-sao, palukasamoh -----
+-- นัด 1–4: 08:00 / 08:35 / 09:10 / 09:45 · พัก 20 นาที · นัด 5–6: 10:40 / 11:15
 insert into public.matches (
   id, sport, competition_id, season_id, home_team_id, away_team_id,
-  scheduled_at, venue, status, group_code, stage, court_label, detail
+  scheduled_at, venue, status, group_code, stage, court_label, detail, period_label
 ) values
   ('fb-b-1', 'football', 'comp-football', 'season-2569-fb', 'barehtai', 'bare-nuea',
-   '2026-09-21T08:00:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false),
+   '2026-09-21T08:00:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false, 'รอบที่ 1 · นัดที่ 1'),
   ('fb-b-2', 'football', 'comp-football', 'season-2569-fb', 'bacho-sao', 'palukasamoh',
-   '2026-09-21T08:35:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false),
+   '2026-09-21T08:35:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false, 'รอบที่ 1 · นัดที่ 2'),
   ('fb-b-3', 'football', 'comp-football', 'season-2569-fb', 'barehtai', 'bacho-sao',
-   '2026-09-21T09:10:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false),
+   '2026-09-21T09:10:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false, 'รอบที่ 1 · นัดที่ 3'),
   ('fb-b-4', 'football', 'comp-football', 'season-2569-fb', 'bare-nuea', 'palukasamoh',
-   '2026-09-21T09:45:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false),
+   '2026-09-21T09:45:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false, 'รอบที่ 1 · นัดที่ 4'),
   ('fb-b-5', 'football', 'comp-football', 'season-2569-fb', 'barehtai', 'palukasamoh',
-   '2026-09-21T10:20:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false),
-  ('fb-b-6', 'football', 'comp-football', 'season-2569-fb', 'bare-nuea', 'bacho-sao',
-   '2026-09-21T10:55:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false);
+   '2026-09-21T10:40:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false, 'รอบที่ 2 · นัดที่ 5'),
+  ('fb-b-6', 'football', 'comp-football', 'season-2569-fb', 'bacho-sao', 'bare-nuea',
+   '2026-09-21T11:15:00+07:00', 'สนามฟุตซอล สาย B', 'scheduled', 'B', 'group', 'สนาม B', false, 'รอบที่ 2 · นัดที่ 6');
 
 -- Knockout slots — ยังไม่รู้ทีมจริง จนกว่าจะจบสาย (+จับฉลาก) แล้วแอดมินใส่ทีม
 insert into public.matches (

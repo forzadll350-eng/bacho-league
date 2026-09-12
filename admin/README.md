@@ -2,25 +2,24 @@
 
 แอปแอดมินแยกจาก public app — ใช้ Supabase โปรเจกต์เดียวกัน (Auth + UPDATE ผ่าน RLS)
 
+## บัญชีแอดมิน (สนาม)
+
+| ไอดี | PIN |
+|------|-----|
+| lubo1 … lubo8 | `123456` |
+
+- เข้าด้วยไอดีอย่างเดียว (ระบบแปลงเป็นอีเมลภายใน)
+- **เข้าซ้อนเครื่องไม่ได้** — ถ้าไอดีเดียวกันล็อกอินเครื่องใหม่ เครื่องเก่าจะถูกเตะออก
+- อีเมลใน Auth: `luboN@bacholeague.app`
+
 ## เตรียมก่อนรัน
 
-### 1. สร้างผู้ใช้ใน Supabase Auth
+### 1. รัน migration
 
-1. เปิด [Supabase Dashboard](https://supabase.com/dashboard) → โปรเจกต์ Bacho League
-2. ไปที่ **Authentication → Users → Add user**
-3. สร้างด้วย **email + password** (ใช้ล็อกอินในแอปนี้)
+ใน **SQL Editor** รัน:
 
-### 2. รัน migration (สิทธิ์เขียน)
-
-ใน **SQL Editor** รันไฟล์:
-
-`../supabase/migrations/202603100002_admin_write.sql`
-
-(ต้องรัน `202603100001_init.sql` ก่อนถ้ายังไม่เคย)
-
-Migration นี้ให้ผู้ใช้ที่ล็อกอินแล้ว (`authenticated`) อัปเดต `matches`, `standings`, `notifications` ได้ — ไม่ใช้ service role ใน client
-
-### 3. ตั้งค่า env
+- `../supabase/migrations/202603100002_admin_write.sql`
+- `../supabase/migrations/202603110010_admin_single_session.sql`
 
 ```bash
 cp .env.example .env
