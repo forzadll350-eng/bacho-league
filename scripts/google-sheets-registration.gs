@@ -348,6 +348,30 @@ function onEdit(e) {
 }
 
 /**
+ * Run ครั้งเดียวเพื่อให้ dropdown B4 รีเฟรชรายชื่ออัตโนมัติ
+ * โปรเจกต์นี้เป็น standalone script จึงต้องใช้ installable trigger
+ */
+function installByOrgEditTrigger() {
+  var handler = 'onEdit'
+  var triggers = ScriptApp.getProjectTriggers()
+  for (var i = 0; i < triggers.length; i++) {
+    if (
+      triggers[i].getHandlerFunction() === handler &&
+      triggers[i].getEventType() === ScriptApp.EventType.ON_EDIT
+    ) {
+      return { created: false, reason: 'trigger_exists' }
+    }
+  }
+
+  ScriptApp.newTrigger(handler)
+    .forSpreadsheet(SPREADSHEET_ID)
+    .onEdit()
+    .create()
+
+  return { created: true }
+}
+
+/**
  * Run จาก Apps Script editor ครั้งเดียวหลังวางโค้ดนี้
  * (ชื่อเดิม fixByOrgFormulas — ล้างสูตรพัง + เขียนรายชื่อจากข้อมูลจริง)
  */
