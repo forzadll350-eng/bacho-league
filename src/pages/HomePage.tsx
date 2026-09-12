@@ -7,6 +7,8 @@ import { StandingsTable } from '../components/StandingsTable'
 import type { LiveHeroData, Match } from '../types/sports'
 import { compareMatchOrder, matchOrderLabel } from '../lib/matchOrder'
 
+type HomeView = 'A' | 'B' | 'knockout'
+
 function goQuick(
   label: string,
   setPage: ReturnType<typeof useApp>['setPage'],
@@ -35,23 +37,51 @@ function formatClock(match: Match) {
   return `${start}–${end}`
 }
 
-function pickGroupMatch(matches: Match[], group: 'A' | 'B'): Match | undefined {
-  const list = matches.filter((m) => m.groupCode === group).sort(compareMatchOrder)
+function isKnockoutMatch(match: Match, sport: Match['sport']): boolean {
+  return match.stage === 'final' || (sport === 'football' && match.stage === 'semi')
+}
+
+function pickHomeMatch(
+  matches: Match[],
+  view: HomeView,
+  sport: Match['sport'],
+): Match | undefined {
+  const list = matches
+    .filter((match) =>
+      view === 'knockout'
+        ? isKnockoutMatch(match, sport)
+        : match.groupCode === view && match.stage === 'group',
+    )
+    .sort(compareMatchOrder)
+
+  const finished = list.filter((match) => match.status === 'finished')
   return (
     list.find((m) => m.status === 'live' || m.status === 'halftime') ??
     list.find((m) => m.status === 'scheduled') ??
-    list.find((m) => m.status === 'finished') ??
+    (view === 'knockout' ? finished.at(-1) : finished[0]) ??
     list[0]
   )
 }
 
-function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' | 'B'): LiveHeroData {
+function knockoutLabel(match: Match | undefined, sport: Match['sport']): string {
+  if (match?.stage === 'final' || sport === 'volleyball') return 'รอบชิงชนะเลิศ'
+  if (match?.stage === 'semi') return 'รอบรองชนะเลิศ'
+  return 'รอบรอง / รอบชิง'
+}
+
+function heroForMatch(
+  match: Match | undefined,
+  base: LiveHeroData,
+  view: HomeView,
+  sport: Match['sport'],
+): LiveHeroData {
+  const viewLabel = view === 'knockout' ? knockoutLabel(match, sport) : `สาย ${view}`
   if (!match) {
     return {
       ...base,
-      league: `${base.league} · สาย ${group}`,
-      state: 'ยังไม่มีนัดในสายนี้',
-      clock: `สาย ${group}`,
+      league: `${base.league} · ${viewLabel}`,
+      state: view === 'knockout' ? 'ยังไม่มีการแข่งขันรอบนี้' : 'ยังไม่มีนัดในสายนี้',
+      clock: viewLabel,
       score: '—',
       sets: undefined,
       pointsScore: undefined,
@@ -75,7 +105,7 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
       match.periodLabel ??
       (playing ? 'กำลังแข่งขัน' : match.status === 'finished' ? 'จบแล้ว' : 'รอแข่งขัน'),
     clock: match.hideScheduleTime ? matchOrderLabel(match) : formatClock(match),
-    league: [base.league.split('·')[0]?.trim() || base.league, `สาย ${group}`, match.courtLabel]
+    league: [base.league.split('·')[0]?.trim() || base.league, viewLabel, match.courtLabel]
       .filter(Boolean)
       .join(' · '),
     sets: undefined,
@@ -93,28 +123,46 @@ function heroForMatch(match: Match | undefined, base: LiveHeroData, group: 'A' |
 export function HomePage() {
   const { page, data, sport, setPage, homeGroup, setHomeGroup } = useApp()
 
+  const knockoutMatches = useMemo(
+    () => data.matches.filter((match) => isKnockoutMatch(match, sport)).sort(compareMatchOrder),
+    [data.matches, sport],
+  )
+  const liveKnockout = knockoutMatches.find(
+    (match) => match.status === 'live' || match.status === 'halftime',
+  )
+  const activeView: HomeView = liveKnockout ? 'knockout' : homeGroup
+
   const featured = useMemo(
-    () => pickGroupMatch(data.matches, homeGroup),
-    [data.matches, homeGroup],
+    () => pickHomeMatch(data.matches, activeView, sport),
+    [data.matches, activeView, sport],
   )
   const hero = useMemo(
-    () => heroForMatch(featured, data.hero, homeGroup),
-    [featured, data.hero, homeGroup],
+    () => heroForMatch(featured, data.hero, activeView, sport),
+    [featured, data.hero, activeView, sport],
   )
   const isPlaying = featured?.status === 'live' || featured?.status === 'halftime'
 
-  const groupMatches = useMemo(
-    () =>
-      data.matches
-        .filter((m) => m.groupCode === homeGroup && m.stage === 'group')
-        .sort(compareMatchOrder),
-    [data.matches, homeGroup],
-  )
+  const homeMatches = useMemo(() => {
+    if (activeView === 'knockout') return knockoutMatches
+    return data.matches
+      .filter((match) => match.groupCode === activeView && match.stage === 'group')
+      .sort(compareMatchOrder)
+  }, [activeView, data.matches, knockoutMatches])
   const groupTable = useMemo(
-    () => data.table.filter((r) => r.groupCode === homeGroup),
-    [data.table, homeGroup],
+    () =>
+      activeView === 'knockout'
+        ? []
+        : data.table.filter((row) => row.groupCode === activeView),
+    [activeView, data.table],
   )
   const topScorer = data.topScorers[0]
+  const knockoutTabLabel = sport === 'football' ? 'รอบรอง/ชิง' : 'รอบชิง'
+  const matchSectionTitle =
+    activeView === 'knockout'
+      ? sport === 'football'
+        ? 'รอบรองและรอบชิงชนะเลิศ'
+        : 'รอบชิงชนะเลิศ'
+      : `การแข่งขันสาย ${activeView}`
 
   return (
     <section className={`page${page === 'home' ? ' active' : ''}`} id="page-home">
@@ -128,22 +176,30 @@ export function HomePage() {
         </button>
       </div>
 
-      <div className="seg seg-duo" role="tablist" aria-label="เลือกสาย">
+      <div className="seg seg-trio" role="tablist" aria-label="เลือกรอบการแข่งขัน">
         <button
           type="button"
-          className={homeGroup === 'A' ? 'active' : ''}
-          aria-selected={homeGroup === 'A'}
+          className={activeView === 'A' ? 'active' : ''}
+          aria-selected={activeView === 'A'}
           onClick={() => setHomeGroup('A')}
         >
           สาย A · สนาม A
         </button>
         <button
           type="button"
-          className={homeGroup === 'B' ? 'active' : ''}
-          aria-selected={homeGroup === 'B'}
+          className={activeView === 'B' ? 'active' : ''}
+          aria-selected={activeView === 'B'}
           onClick={() => setHomeGroup('B')}
         >
           สาย B · สนาม B
+        </button>
+        <button
+          type="button"
+          className={activeView === 'knockout' ? 'active' : ''}
+          aria-selected={activeView === 'knockout'}
+          onClick={() => setHomeGroup('knockout')}
+        >
+          {knockoutTabLabel}
         </button>
       </div>
 
@@ -160,17 +216,21 @@ export function HomePage() {
       />
 
       <div className="section-head">
-        <h2>การแข่งขันสาย {homeGroup}</h2>
-        <button type="button" className="text-btn" onClick={() => setPage('fixtures')}>
+        <h2>{matchSectionTitle}</h2>
+        <button
+          type="button"
+          className="text-btn"
+          onClick={() => setPage(activeView === 'knockout' ? 'standings' : 'fixtures')}
+        >
           ดูทั้งหมด
         </button>
       </div>
-      {groupMatches.length === 0 ? (
+      {homeMatches.length === 0 ? (
         <div className="card" style={{ padding: 14, color: 'var(--muted)', fontSize: 12 }}>
-          ยังไม่มีนัดในสายนี้
+          {activeView === 'knockout' ? 'ยังไม่มีการแข่งขันรอบนี้' : 'ยังไม่มีนัดในสายนี้'}
         </div>
       ) : (
-        groupMatches.map((m) => <MatchCard key={m.id} match={m} />)
+        homeMatches.map((m) => <MatchCard key={m.id} match={m} />)
       )}
 
       {sport === 'football' ? (
@@ -210,17 +270,17 @@ export function HomePage() {
         </>
       ) : null}
 
-      <div className="section-head">
-        <h2>ตารางคะแนนสาย {homeGroup}</h2>
-        <button type="button" className="text-btn" onClick={() => setPage('standings')}>
-          ดูตารางเต็ม
-        </button>
-      </div>
-      <StandingsTable
-        rows={groupTable}
-        limit={4}
-        sport={sport}
-      />
+      {activeView !== 'knockout' ? (
+        <>
+          <div className="section-head">
+            <h2>ตารางคะแนนสาย {activeView}</h2>
+            <button type="button" className="text-btn" onClick={() => setPage('standings')}>
+              ดูตารางเต็ม
+            </button>
+          </div>
+          <StandingsTable rows={groupTable} limit={4} sport={sport} />
+        </>
+      ) : null}
 
       <div className="section-head">
         <h2>ภาพรวม</h2>

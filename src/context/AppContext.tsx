@@ -46,8 +46,8 @@ interface AppContextValue {
   openNotif: () => void
   closeNotif: () => void
   updateText: string
-  homeGroup: 'A' | 'B'
-  setHomeGroup: (group: 'A' | 'B') => void
+  homeGroup: 'A' | 'B' | 'knockout'
+  setHomeGroup: (group: 'A' | 'B' | 'knockout') => void
   refresh: () => void
 }
 
@@ -66,7 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [usingLiveData, setUsingLiveData] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [updateSeconds, setUpdateSeconds] = useState(0)
-  const [homeGroup, setHomeGroup] = useState<'A' | 'B'>('A')
+  const [homeGroup, setHomeGroup] = useState<'A' | 'B' | 'knockout'>('A')
   const [reloadToken, setReloadToken] = useState(0)
 
   const setSport = useCallback((next: SportType) => {
