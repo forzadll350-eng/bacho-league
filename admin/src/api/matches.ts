@@ -30,6 +30,13 @@ export type GoalDraft = {
   player_name: string | null
 }
 
+export type VolleyballPointsUpdate = {
+  homePoints: number
+  awayPoints: number
+  pointsSet: number
+  setScores: Partial<Record<'1' | '2' | '3', { home: number; away: number }>>
+}
+
 function oneTeam(value: RawTeam): TeamRow | null {
   if (!value) return null
   return Array.isArray(value) ? (value[0] ?? null) : value
@@ -98,6 +105,22 @@ export async function saveMatchState(
     p_match_id: matchId,
     p_patch: patch,
     p_goals: goalPayload,
+  })
+  if (error) throw error
+}
+
+/** Persist only volleyball rally points; every other editor field remains unsaved. */
+export async function saveVolleyballPoints(
+  matchId: string,
+  points: VolleyballPointsUpdate,
+): Promise<void> {
+  if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
+  const { error } = await supabase.rpc('save_volleyball_points', {
+    p_match_id: matchId,
+    p_home_points: points.homePoints,
+    p_away_points: points.awayPoints,
+    p_points_set: points.pointsSet,
+    p_set_scores: points.setScores,
   })
   if (error) throw error
 }

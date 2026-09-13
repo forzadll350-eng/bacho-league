@@ -1,5 +1,5 @@
 import { Minus, Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   GoalScorerDialog,
   type ScorerChoice,
@@ -9,8 +9,10 @@ import {
   fetchMatchGoals,
   fetchMatches,
   saveMatchState,
+  saveVolleyballPoints,
   teamName,
   type GoalDraft,
+  type VolleyballPointsUpdate,
 } from '../api/matches'
 import { fetchRegistrations, type RegistrationRow } from '../api/registrations'
 import {
@@ -43,6 +45,8 @@ type ScorerPrompt = {
   scoreWasAdded: boolean
   minute: number
 }
+
+type PointSaveState = 'idle' | 'saving' | 'saved' | 'error'
 
 function toLocalInput(iso: string | null | undefined): string {
   if (!iso) return ''
@@ -101,6 +105,11 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   const [matchOrderLimit, setMatchOrderLimit] = useState(1)
   const [goals, setGoals] = useState<GoalDraft[]>([])
   const [scorerPrompt, setScorerPrompt] = useState<ScorerPrompt | null>(null)
+  const [pointSaveState, setPointSaveState] = useState<PointSaveState>('idle')
+  const [pointSaveError, setPointSaveError] = useState<string | null>(null)
+  const pendingPointSaveRef = useRef<VolleyballPointsUpdate | null>(null)
+  const pointSavePromiseRef = useRef<Promise<void> | null>(null)
+  const pointSaveFailedRef = useRef(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -429,13 +438,78 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
     setAwayPoints(pair.away)
   }
 
+  function flushPointSaveQueue(): Promise<void> {
+    if (pointSavePromiseRef.current) return pointSavePromiseRef.current
+
+    setPointSaveState('saving')
+    setPointSaveError(null)
+    const promise = (async () => {
+      while (pendingPointSaveRef.current) {
+        const payload = pendingPointSaveRef.current
+        pendingPointSaveRef.current = null
+        try {
+          await saveVolleyballPoints(matchId, payload)
+        } catch (err: unknown) {
+          // Preserve the latest unsaved snapshot so Retry cannot write an older score.
+          pendingPointSaveRef.current ??= payload
+          pointSaveFailedRef.current = true
+          setPointSaveState('error')
+          setPointSaveError(err instanceof Error ? err.message : 'บันทึกแต้มไม่สำเร็จ')
+          return
+        }
+      }
+      pointSaveFailedRef.current = false
+      setPointSaveState('saved')
+    })().finally(() => {
+      pointSavePromiseRef.current = null
+      if (pendingPointSaveRef.current && !pointSaveFailedRef.current) {
+        void flushPointSaveQueue()
+      }
+    })
+    pointSavePromiseRef.current = promise
+    return promise
+  }
+
+  function queuePointSave(payload: VolleyballPointsUpdate) {
+    pendingPointSaveRef.current = payload
+    pointSaveFailedRef.current = false
+    setPointSaveState('saving')
+    setPointSaveError(null)
+    void flushPointSaveQueue()
+  }
+
+  function retryPointSave() {
+    pointSaveFailedRef.current = false
+    void flushPointSaveQueue()
+  }
+
   function bumpHomePoints(delta: number) {
-    setHomePoints((n) => Math.max(0, n + delta))
+    const nextHomePoints = Math.max(0, homePoints + delta)
+    if (nextHomePoints === homePoints) return
+    const nextSetScores = writeSetPair(setScores, pointsSet, nextHomePoints, awayPoints)
+    setHomePoints(nextHomePoints)
+    setSetScores(nextSetScores)
+    queuePointSave({
+      homePoints: nextHomePoints,
+      awayPoints,
+      pointsSet,
+      setScores: nextSetScores,
+    })
     if (delta > 0) ensurePlayingStarted()
   }
 
   function bumpAwayPoints(delta: number) {
-    setAwayPoints((n) => Math.max(0, n + delta))
+    const nextAwayPoints = Math.max(0, awayPoints + delta)
+    if (nextAwayPoints === awayPoints) return
+    const nextSetScores = writeSetPair(setScores, pointsSet, homePoints, nextAwayPoints)
+    setAwayPoints(nextAwayPoints)
+    setSetScores(nextSetScores)
+    queuePointSave({
+      homePoints,
+      awayPoints: nextAwayPoints,
+      pointsSet,
+      setScores: nextSetScores,
+    })
     if (delta > 0) ensurePlayingStarted()
   }
 
@@ -516,9 +590,18 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
             }
           })
       }
+      if (match.sport === 'volleyball' && pointSavePromiseRef.current) {
+        await pointSavePromiseRef.current
+      }
       await saveMatchState(matchId, patch, stamped)
       if (stamped) setGoals(stamped)
       setStartedAt(effectiveStartedAt)
+      if (match.sport === 'volleyball') {
+        pendingPointSaveRef.current = null
+        pointSaveFailedRef.current = false
+        setPointSaveState('saved')
+        setPointSaveError(null)
+      }
       setToast(
         totalPendingScorers > 0
           ? `บันทึกแล้ว · รอระบุผู้ยิง ${totalPendingScorers} ประตู`
@@ -637,10 +720,31 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
       {match.sport === 'volleyball' ? (
         <div className="editor-panel">
-          <div className="editor-title">แต้มในเซต</div>
+          <div className="editor-title point-editor-title">
+            <span>แต้มในเซต</span>
+            {pointSaveState === 'saving' ? (
+              <span className="point-save-status is-saving" role="status">
+                กำลังบันทึก…
+              </span>
+            ) : pointSaveState === 'saved' ? (
+              <span className="point-save-status is-saved" role="status">
+                บันทึกแต้มแล้ว
+              </span>
+            ) : pointSaveState === 'error' ? (
+              <button
+                type="button"
+                className="point-save-retry"
+                onClick={retryPointSave}
+                disabled={saving}
+              >
+                บันทึกไม่สำเร็จ · ลองใหม่
+              </button>
+            ) : null}
+          </div>
           <p className="field-hint" style={{ marginTop: 0 }}>
-            เลือกเซต 1–3 แล้วบันทึกแต้มของเซตนั้น · หน้าเว็บจะโชว์แต้มของเซตที่เลือก (เล็กกว่าเซต)
+            กด +/− แล้วบันทึกแต้มทันที · สถานะ เวลา และข้อมูลอื่นยังต้องกดปุ่มบันทึกด้านล่าง
           </p>
+          {pointSaveError ? <p className="point-save-error">{pointSaveError}</p> : null}
           <div className="set-picker" role="group" aria-label="เลือกเซตที่แสดงแต้ม">
             {([1, 2, 3] as SetNumber[]).map((n) => {
               const saved = readSetPair(
@@ -654,6 +758,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                   type="button"
                   className={`set-picker-btn${active ? ' active' : ''}`}
                   onClick={() => selectPointsSet(n)}
+                  disabled={saving}
                 >
                   <span className="set-picker-label">เซต {n}</span>
                   <span className="set-picker-score">
@@ -668,10 +773,20 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
               <div className="name">{teamName(match.home)}</div>
               <div className="mid">{homePoints}</div>
               <div className="score-btns">
-                <button type="button" onClick={() => bumpHomePoints(-1)}>
+                <button
+                  type="button"
+                  onClick={() => bumpHomePoints(-1)}
+                  disabled={saving}
+                  aria-label={`ลดแต้ม ${teamName(match.home)}`}
+                >
                   <Minus size={16} />
                 </button>
-                <button type="button" onClick={() => bumpHomePoints(1)}>
+                <button
+                  type="button"
+                  onClick={() => bumpHomePoints(1)}
+                  disabled={saving}
+                  aria-label={`เพิ่มแต้ม ${teamName(match.home)}`}
+                >
                   <Plus size={16} />
                 </button>
               </div>
@@ -681,10 +796,20 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
               <div className="name">{teamName(match.away)}</div>
               <div className="mid">{awayPoints}</div>
               <div className="score-btns">
-                <button type="button" onClick={() => bumpAwayPoints(-1)}>
+                <button
+                  type="button"
+                  onClick={() => bumpAwayPoints(-1)}
+                  disabled={saving}
+                  aria-label={`ลดแต้ม ${teamName(match.away)}`}
+                >
                   <Minus size={16} />
                 </button>
-                <button type="button" onClick={() => bumpAwayPoints(1)}>
+                <button
+                  type="button"
+                  onClick={() => bumpAwayPoints(1)}
+                  disabled={saving}
+                  aria-label={`เพิ่มแต้ม ${teamName(match.away)}`}
+                >
                   <Plus size={16} />
                 </button>
               </div>

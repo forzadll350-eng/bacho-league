@@ -652,6 +652,54 @@ button {
   color: var(--danger);
 }
 
+.point-editor-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.point-save-status,
+.point-save-retry {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.point-save-status.is-saving {
+  color: var(--amber);
+}
+
+.point-save-status.is-saved {
+  color: var(--green);
+}
+
+.point-save-retry {
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
+  color: var(--danger);
+}
+
+.point-save-retry:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.point-save-retry:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.point-save-error {
+  margin: -3px 0 9px;
+  color: var(--danger);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 .top-actions {
   display: flex;
   align-items: center;
