@@ -1,0 +1,207 @@
+.registration-qr-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(452px, calc(100% - 24px));
+  max-width: none;
+  height: fit-content;
+  max-height: min(92dvh, 840px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.registration-qr-dialog::backdrop {
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.registration-qr-dialog__sheet {
+  max-height: min(92dvh, 840px);
+  background: var(--panel);
+  overflow-y: auto;
+}
+
+.registration-qr-dialog__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.registration-qr-dialog__header p,
+.registration-qr-dialog__header h2,
+.registration-qr-dialog__header span {
+  margin: 0;
+}
+
+.registration-qr-dialog__header p {
+  color: var(--blue);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.registration-qr-dialog__header h2 {
+  margin-top: 3px;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.registration-qr-dialog__header span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.registration-qr-dialog__header button {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel2);
+  color: var(--ink);
+}
+
+.registration-qr-list {
+  display: grid;
+  gap: 12px;
+  padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+}
+
+.registration-qr-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--bg);
+}
+
+.registration-qr-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.registration-qr-card__icon {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--blue) 14%, var(--panel));
+  color: var(--blue);
+}
+
+.registration-qr-card h3,
+.registration-qr-card p {
+  margin: 0;
+}
+
+.registration-qr-card h3 {
+  font-size: 0.95rem;
+}
+
+.registration-qr-card p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.registration-qr-code {
+  display: grid;
+  width: min(224px, 72vw);
+  aspect-ratio: 1;
+  margin: 14px auto 10px;
+  place-items: center;
+  border: 8px solid #fff;
+  border-radius: 13px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.registration-qr-code img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.registration-qr-url {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.67rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.registration-qr-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.registration-qr-actions .btn {
+  min-height: 44px;
+  padding-inline: 8px;
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.registration-qr-dialog button:focus-visible,
+.registration-qr-dialog a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.registration-qr-dialog button:active,
+.registration-qr-dialog a:active {
+  transform: translateY(1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .registration-qr-dialog__header button:hover {
+    background: var(--chip);
+  }
+}
+
+@media (max-width: 360px) {
+  .registration-qr-dialog__header {
+    padding-inline: 12px;
+  }
+
+  .registration-qr-list {
+    padding-inline: 10px;
+  }
+
+  .registration-qr-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .registration-qr-dialog button:active,
+  .registration-qr-dialog a:active {
+    transform: none;
+  }
+}

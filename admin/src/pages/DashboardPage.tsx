@@ -1,6 +1,7 @@
-import { LogOut, Moon, Sun } from 'lucide-react'
+import { LogOut, Moon, QrCode, Sun } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchLeadPoints, fetchMatches, teamName } from '../api/matches'
+import { RegistrationQrDialog } from '../components/RegistrationQrDialog'
 import { useAuth } from '../context/AuthContext'
 import type { MatchRow, SportType, StatusFilter, ThemeMode } from '../types'
 import { SPORT_LABELS, STATUS_LABELS } from '../types'
@@ -119,6 +120,7 @@ export function DashboardPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [registrationQrOpen, setRegistrationQrOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -197,6 +199,15 @@ export function DashboardPage({
           <span>{displayName}</span>
         </div>
         <div className="top-actions">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setRegistrationQrOpen(true)}
+            aria-label="เปิด QR ลงทะเบียน"
+            title="QR ลงทะเบียน"
+          >
+            <QrCode size={17} />
+          </button>
           <button
             type="button"
             className="icon-btn"
@@ -352,6 +363,10 @@ export function DashboardPage({
           </section>
         ))}
       </div>
+
+      {registrationQrOpen ? (
+        <RegistrationQrDialog onClose={() => setRegistrationQrOpen(false)} />
+      ) : null}
     </div>
   )
 }
