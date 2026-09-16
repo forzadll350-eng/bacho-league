@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Mockup การ์ดการแข่งขันบนมือถือ</title>
+    <link rel="stylesheet" href="../src/index.css" />
+    <style>
+      /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+      /* Hallmark · component: match card · genre: atmospheric · theme: existing Bacho League
+       * states: default · hover · focus · active · disabled · loading · error · success
+       * contrast: pass (46–50)
+       */
+      :root {
+        --mock-color-page: var(--bg);
+        --mock-color-surface: var(--panel);
+        --mock-color-surface-raised: var(--panel2);
+        --mock-color-ink: var(--ink);
+        --mock-color-muted: var(--muted);
+        --mock-color-rule: var(--line);
+        --mock-color-live: var(--live);
+        --mock-color-focus: var(--amber);
+        --mock-color-success: var(--green);
+        --mock-font-display: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+        --mock-font-numeric: 'IBM Plex Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
+        --mock-space-2xs: 0.25rem;
+        --mock-space-xs: 0.5rem;
+        --mock-space-sm: 0.75rem;
+        --mock-space-md: 1rem;
+        --mock-space-lg: 1.5rem;
+        --mock-space-xl: 2.5rem;
+        --mock-text-xs: 0.6875rem;
+        --mock-text-sm: 0.8125rem;
+        --mock-text-base: 1rem;
+        --mock-text-score: 2rem;
+        --mock-radius-sm: 0.75rem;
+        --mock-radius-md: 1.25rem;
+        --mock-rule: 1px;
+        --mock-dur-micro: 120ms;
+        --mock-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      html,
+      body {
+        overflow-x: clip;
+      }
+
+      body {
+        min-height: 100svh;
+        margin: 0;
+        background: var(--mock-color-page);
+        color: var(--mock-color-ink);
+        font-family: var(--mock-font-display);
+      }
+
+      .mockup-stage {
+        width: min(100%, 23.4375rem);
+        margin-inline: auto;
+        padding: var(--mock-space-lg) var(--mock-space-md);
+      }
+
+      .mockup-intro {
+        display: grid;
+        gap: var(--mock-space-2xs);
+        margin-block-end: var(--mock-space-md);
+      }
+
+      .mockup-intro h1 {
+        margin: 0;
+        min-width: 0;
+        font-size: 1.25rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        font-style: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .mockup-intro p {
+        margin: 0;
+        color: var(--mock-color-ink);
+        font-size: var(--mock-text-sm);
+        line-height: 1.55;
+        opacity: 0.64;
+      }
+
+      .match-card-demo {
+        display: grid;
+        gap: var(--mock-space-md);
+        padding: var(--mock-space-sm) var(--mock-space-md) var(--mock-space-md);
+        border: var(--mock-rule) solid var(--mock-color-rule);
+        border-radius: var(--mock-radius-md);
+        background: var(--mock-color-surface);
+      }
+
+      .match-card-demo__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mock-space-xs);
+        min-width: 0;
+        color: var(--mock-color-ink);
+        font-size: var(--mock-text-xs);
+      }
+
+      .match-card-demo__time {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-family: var(--mock-font-numeric);
+        font-variant-numeric: tabular-nums;
+        opacity: 0.64;
+      }
+
+      .match-card-demo__status {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mock-space-2xs);
+        min-height: 1.75rem;
+        padding-inline: var(--mock-space-xs);
+        border-radius: var(--mock-radius-sm);
+        background: var(--chip);
+        color: var(--mock-color-ink);
+        white-space: nowrap;
+      }
+
+      .match-card-demo__status::before {
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 50%;
+        background: var(--mock-color-live);
+        content: '';
+      }
+
+      .match-card-demo__body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 4.75rem minmax(0, 1fr);
+        align-items: center;
+        gap: var(--mock-space-xs);
+      }
+
+      .team-block {
+        display: grid;
+        justify-items: center;
+        align-content: start;
+        gap: var(--mock-space-xs);
+        min-width: 0;
+        text-align: center;
+      }
+
+      .team-block__crest {
+        width: 3rem;
+        height: 3rem;
+        object-fit: contain;
+      }
+
+      .team-block__name {
+        display: grid;
+        align-content: start;
+        gap: var(--mock-space-2xs);
+        width: 100%;
+        min-width: 0;
+        min-height: 3.125rem;
+      }
+
+      .team-block__org {
+        color: var(--mock-color-ink);
+        font-size: var(--mock-text-xs);
+        font-weight: 500;
+        line-height: 1.15;
+        opacity: 0.64;
+      }
+
+      .team-block__place {
+        font-size: clamp(0.875rem, 4vw, var(--mock-text-base));
+        font-weight: 700;
+        line-height: 1.18;
+        letter-spacing: -0.015em;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+      }
+
+      .score-block {
+        display: grid;
+        justify-items: center;
+        gap: var(--mock-space-2xs);
+        min-width: 0;
+        font-family: var(--mock-font-numeric);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .score-block__score {
+        font-size: var(--mock-text-score);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        white-space: nowrap;
+      }
+
+      .score-block__clock {
+        color: var(--mock-color-live);
+        font-size: var(--mock-text-xs);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .match-card-demo__explain {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--mock-space-xs);
+        padding-block-start: var(--mock-space-sm);
+        border-block-start: var(--mock-rule) solid var(--mock-color-rule);
+        color: var(--mock-color-ink);
+        font-size: var(--mock-text-xs);
+        line-height: 1.45;
+      }
+
+      .match-card-demo__explain strong {
+        display: block;
+        margin-block-end: var(--mock-space-2xs);
+        color: var(--mock-color-ink);
+        font-size: var(--mock-text-sm);
+      }
+
+      .match-card-demo__explain span {
+        opacity: 0.64;
+      }
+
+      @media (min-width: 40rem) {
+        .mockup-stage {
+          padding-block: var(--mock-space-xl);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: var(--mock-dur-micro) !important;
+          transition-duration: var(--mock-dur-micro) !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="mockup-stage">
+      <header class="mockup-intro">
+        <h1>ชื่อครบ อ่านสกอร์เร็ว</h1>
+        <p>แยกประเภทหน่วยงานออกจากชื่อตำบล เพื่อไม่ต้องตัดชื่อด้วย …</p>
+      </header>
+
+      <article class="match-card-demo" aria-label="กาเยาะมาตี พบ ปะลุกาสาเมาะ กำลังแข่งขัน">
+        <div class="match-card-demo__top">
+          <span class="match-card-demo__time">10:00–10:40 · สนามที่ 2</span>
+          <span class="match-card-demo__status">กำลังแข่งขัน</span>
+        </div>
+
+        <div class="match-card-demo__body">
+          <section class="team-block" aria-label="องค์การบริหารส่วนตำบลกาเยาะมาตี">
+            <img class="team-block__crest" src="/crests/kayoh-mati.webp" alt="" width="48" height="48" />
+            <div class="team-block__name">
+              <span class="team-block__org">อบต.</span>
+              <span class="team-block__place">กาเยาะมาตี</span>
+            </div>
+          </section>
+
+          <div class="score-block" aria-label="เสมอ 1 ต่อ 1 นาที 12 นาที 48 วินาที">
+            <span class="score-block__score">1–1</span>
+            <span class="score-block__clock">12:48</span>
+          </div>
+
+          <section class="team-block" aria-label="องค์การบริหารส่วนตำบลปะลุกาสาเมาะ">
+            <img class="team-block__crest" src="/crests/palukasamoh.webp" alt="" width="48" height="48" />
+            <div class="team-block__name">
+              <span class="team-block__org">อบต.</span>
+              <span class="team-block__place">ปะลุกาสาเมาะ</span>
+            </div>
+          </section>
+        </div>
+
+        <div class="match-card-demo__explain" aria-label="คำอธิบายแนวทางออกแบบ">
+          <div><strong>ชื่อไม่หาย</strong><span>ชื่อตำบลแสดงได้สองบรรทัดโดยไม่ใช้จุดไข่ปลา</span></div>
+          <div><strong>ลำดับชัด</strong><span>ตราทีม → ชื่อทีม → สกอร์ อ่านจากบนลงล่าง</span></div>
+        </div>
+      </article>
+    </main>
+  </body>
+</html>

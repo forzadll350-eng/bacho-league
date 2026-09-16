@@ -53,6 +53,31 @@ function pointsDisplay(m: Match) {
   }
 }
 
+const TEAM_ORG_PREFIXES = ['เทศบาลตำบล', 'อบต.'] as const
+
+function splitTeamName(nameTh: string) {
+  const fullName = nameTh.trim()
+  const org = TEAM_ORG_PREFIXES.find((prefix) => fullName.startsWith(prefix))
+
+  if (!org) return { org: null, locality: fullName }
+
+  const locality = fullName.slice(org.length).trim()
+  return locality ? { org, locality } : { org: null, locality: fullName }
+}
+
+function MiniTeamName({ nameTh }: { nameTh: string }) {
+  const { org, locality } = splitTeamName(nameTh)
+
+  return (
+    <span className="mini-team-name">
+      {org ? <span className="mini-team-org">{org}</span> : null}
+      <span className={`mini-team-locality${org ? '' : ' single'}`}>
+        {locality}
+      </span>
+    </span>
+  )
+}
+
 function useLiveElapsed(match: Match) {
   const playing = isMatchPlaying(match.status)
   const [now, setNow] = useState(() => Date.now())
@@ -87,7 +112,7 @@ function MatchRow({
           width={40}
           height={40}
         />
-        <span>{match.homeTeam.nameTh}</span>
+        <MiniTeamName nameTh={match.homeTeam.nameTh} />
       </div>
       <div className="mini-score-stack">
         <div className="mini-score sports-num">{scoreDisplay(match)}</div>
@@ -110,7 +135,7 @@ function MatchRow({
           width={40}
           height={40}
         />
-        <span>{match.awayTeam.nameTh}</span>
+        <MiniTeamName nameTh={match.awayTeam.nameTh} />
       </div>
     </div>
   )

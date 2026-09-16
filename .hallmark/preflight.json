@@ -1,0 +1,14 @@
+{
+  "scannedAt": "2026-09-16",
+  "framework": "React 19 with Vite 8",
+  "fontStack": "IBM Plex Sans Thai with IBM Plex Sans numeric companion",
+  "palette": "Existing dark and light CSS variables in src/index.css",
+  "motion": "Motion-cut; no animation library detected",
+  "spacing": "Existing compact mobile spacing; mockups use a 4px base scale",
+  "preserve": [
+    "Existing dark and light themes",
+    "Existing sport status colours",
+    "Existing crest assets",
+    "Existing typography"
+  ]
+}

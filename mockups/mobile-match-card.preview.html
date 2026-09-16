@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Match card — 8 states</title>
+    <link rel="stylesheet" href="../src/index.css" />
+    <style>
+      /* Hallmark · pre-emit critique: P5 H4 E5 S5 R5 V4 */
+      /* Hallmark · component preview: match card · genre: atmospheric · theme: existing Bacho League
+       * states: default · hover · focus · active · disabled · loading · error · success
+       * contrast: pass (46–50)
+       */
+      :root {
+        --preview-color-page: var(--bg);
+        --preview-color-surface: var(--panel);
+        --preview-color-surface-raised: var(--panel2);
+        --preview-color-ink: var(--ink);
+        --preview-color-muted: var(--muted);
+        --preview-color-rule: var(--line);
+        --preview-color-focus: var(--amber);
+        --preview-color-error: var(--live);
+        --preview-color-success: var(--green);
+        --preview-font: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+        --preview-space-xs: 0.5rem;
+        --preview-space-sm: 0.75rem;
+        --preview-space-md: 1rem;
+        --preview-space-lg: 1.5rem;
+        --preview-radius: 1rem;
+        --preview-dur: 120ms;
+        --preview-ease: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      html,
+      body {
+        overflow-x: clip;
+      }
+
+      body {
+        margin: 0;
+        background: var(--preview-color-page);
+        color: var(--preview-color-ink);
+        font-family: var(--preview-font);
+      }
+
+      main {
+        width: min(100%, 48rem);
+        margin-inline: auto;
+        padding: var(--preview-space-lg) var(--preview-space-md);
+      }
+
+      h1 {
+        margin: 0 0 var(--preview-space-lg);
+        min-width: 0;
+        font-size: 1.25rem;
+        font-style: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .states {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--preview-space-md);
+      }
+
+      .state {
+        display: grid;
+        gap: var(--preview-space-xs);
+      }
+
+      .state > span {
+        color: var(--preview-color-ink);
+        font-size: 0.6875rem;
+        opacity: 0.64;
+      }
+
+      .card-button {
+        width: 100%;
+        min-height: 7.5rem;
+        padding: var(--preview-space-sm) var(--preview-space-md);
+        border: 1px solid var(--preview-color-rule);
+        border-radius: var(--preview-radius);
+        background: var(--preview-color-surface);
+        color: var(--preview-color-ink);
+        text-align: start;
+        transition:
+          background-color var(--preview-dur) var(--preview-ease),
+          transform var(--preview-dur) var(--preview-ease);
+      }
+
+      .card-button__top {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--preview-space-xs);
+        margin-block-end: var(--preview-space-sm);
+        color: var(--preview-color-ink);
+        font-size: 0.6875rem;
+      }
+
+      .card-button__top > span:first-child {
+        opacity: 0.64;
+      }
+
+      .card-button__teams {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 4rem minmax(0, 1fr);
+        align-items: center;
+        gap: var(--preview-space-xs);
+      }
+
+      .team {
+        display: grid;
+        justify-items: center;
+        gap: 0.25rem;
+        min-width: 0;
+        text-align: center;
+      }
+
+      .team img {
+        width: 2.5rem;
+        height: 2.5rem;
+        object-fit: contain;
+      }
+
+      .team small {
+        color: var(--preview-color-ink);
+        font-size: 0.625rem;
+        opacity: 0.64;
+      }
+
+      .team strong {
+        font-size: 0.875rem;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+      }
+
+      .score {
+        text-align: center;
+        font-size: 1.5rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .card-button:hover,
+        .card-button.is-hover {
+          background: var(--preview-color-surface-raised);
+        }
+      }
+
+      .card-button:focus-visible,
+      .card-button.is-focus {
+        outline: 2px solid var(--preview-color-focus);
+        outline-offset: 2px;
+      }
+
+      .card-button:active,
+      .card-button.is-active {
+        transform: translateY(1px);
+      }
+
+      .card-button:disabled,
+      .card-button.is-disabled {
+        color: var(--preview-color-muted);
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .card-button.is-loading {
+        opacity: 0.7;
+      }
+
+      .card-button.is-loading .feedback::before {
+        display: inline-block;
+        width: 0.625rem;
+        height: 0.625rem;
+        margin-inline-end: 0.25rem;
+        border: 1px solid var(--preview-color-rule);
+        border-block-start-color: var(--preview-color-ink);
+        border-radius: 50%;
+        animation: preview-spin 800ms linear infinite;
+        content: '';
+      }
+
+      @keyframes preview-spin {
+        to {
+          transform: rotate(1turn);
+        }
+      }
+
+      .card-button.is-error {
+        outline: 2px solid var(--preview-color-error);
+        outline-offset: 2px;
+      }
+
+      .card-button.is-success {
+        outline: 2px solid var(--preview-color-success);
+        outline-offset: 2px;
+      }
+
+      @media (min-width: 40rem) {
+        .states {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .card-button {
+          transition-duration: var(--preview-dur);
+        }
+
+        .card-button:active,
+        .card-button.is-active {
+          transform: none;
+        }
+
+        .card-button.is-loading .feedback::before {
+          animation-duration: 1.6s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Match card — 8 states</h1>
+      <div class="states" id="states"></div>
+    </main>
+    <template id="state-template">
+      <section class="state">
+        <span></span>
+        <button class="card-button" type="button">
+          <div class="card-button__top"><span>10:00–10:40</span><span class="feedback">กำลังแข่งขัน</span></div>
+          <div class="card-button__teams">
+            <div class="team"><img src="/crests/kayoh-mati.webp" alt="" /><small>อบต.</small><strong>กาเยาะมาตี</strong></div>
+            <strong class="score">1–1</strong>
+            <div class="team"><img src="/crests/palukasamoh.webp" alt="" /><small>อบต.</small><strong>ปะลุกาสาเมาะ</strong></div>
+          </div>
+        </button>
+      </section>
+    </template>
+    <script>
+      const states = [
+        ['default', '', 'กำลังแข่งขัน'],
+        ['hover', 'is-hover', 'กำลังแข่งขัน'],
+        ['focus', 'is-focus', 'กำลังแข่งขัน'],
+        ['active', 'is-active', 'กำลังแข่งขัน'],
+        ['disabled', 'is-disabled', 'ยังไม่เปิด'],
+        ['loading', 'is-loading', 'กำลังโหลด…'],
+        ['error', 'is-error', 'โหลดผลไม่สำเร็จ'],
+        ['success', 'is-success', 'ผลเป็นทางการ'],
+      ]
+      const host = document.querySelector('#states')
+      const template = document.querySelector('#state-template')
+      for (const [label, className, feedback] of states) {
+        const fragment = template.content.cloneNode(true)
+        fragment.querySelector('.state > span').textContent = label
+        const button = fragment.querySelector('.card-button')
+        if (className) button.classList.add(className)
+        if (label === 'disabled') {
+          button.disabled = true
+          button.setAttribute('aria-disabled', 'true')
+        }
+        if (label === 'loading') button.setAttribute('aria-busy', 'true')
+        if (label === 'error') button.setAttribute('aria-invalid', 'true')
+        fragment.querySelector('.feedback').textContent = feedback
+        host.append(fragment)
+      }
+    </script>
+  </body>
+</html>
