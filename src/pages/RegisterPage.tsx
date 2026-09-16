@@ -7,7 +7,6 @@ import {
 } from '../components/RegistrationPosterModal'
 import {
   FUTSAL_CONTRACT_MIN_AGE,
-  FUTSAL_REG_LIMIT,
   POSITION_OPTIONS,
   REGISTRATION_CLOSED_MESSAGE,
   countTeamRegistrations,
@@ -51,9 +50,8 @@ export function RegisterPage() {
   const [alert, setAlert] = useState<RegAlert | null>(null)
 
   const isFutsal = sport === 'football'
-  const full = isFutsal && count != null && count >= FUTSAL_REG_LIMIT
   const contractNeedsAge35 = isFutsal && position === 'contract'
-  const formLocked = !registrationOpen || full
+  const formLocked = !registrationOpen
 
   useEffect(() => {
     let cancelled = false
@@ -113,11 +111,6 @@ export function RegisterPage() {
       showErr('กรุณากรอกอายุให้ถูกต้อง')
       return
     }
-    if (full) {
-      showErr('อปท.นี้ลงทะเบียนครบโควต้าแล้ว')
-      return
-    }
-
     setBusy(true)
     try {
       let uploadedPhoto: Awaited<ReturnType<typeof uploadPlayerPhoto>> | undefined
@@ -215,10 +208,7 @@ export function RegisterPage() {
                 ))}
               </select>
               {isFutsal && count != null ? (
-                <p className={`reg-quota${full ? ' full' : ''}`}>
-                  ลงทะเบียนแล้ว {count}/{FUTSAL_REG_LIMIT} คน
-                  {full ? ' · เต็มแล้ว ไม่รับเพิ่ม' : ''}
-                </p>
+                <p className="reg-quota">ลงทะเบียนแล้ว {count} คน · ไม่จำกัดจำนวน</p>
               ) : null}
               {!isFutsal ? <p className="reg-quota">วอลเลย์ลงทะเบียนได้ไม่จำกัดจำนวน</p> : null}
             </div>
@@ -296,13 +286,13 @@ export function RegisterPage() {
             ) : null}
 
             <button type="submit" className="reg-submit" disabled={busy || formLocked}>
-              {busy ? 'กำลังบันทึก…' : full ? 'โควต้าเต็ม' : 'ลงทะเบียนนักกีฬา'}
+              {busy ? 'กำลังบันทึก…' : 'ลงทะเบียนนักกีฬา'}
             </button>
           </form>
 
           <p className="reg-note">
             {isFutsal
-              ? 'ฟุตซอล: ลงสนาม 6 คน (ฝ่ายบริหาร/สภา 2 · อื่นๆ อีก 4) · จ้างเหมาต้องอายุ ≥ 35 · เบอร์เสื้อห้ามซ้ำในอปท. · สมัครได้ไม่เกิน 20 คน/อปท.'
+              ? 'ฟุตซอล: ลงสนาม 6 คน (ฝ่ายบริหาร/สภา 2 · อื่นๆ อีก 4) · จ้างเหมาต้องอายุ ≥ 35 · เบอร์เสื้อห้ามซ้ำในอปท. · สมัครได้ไม่จำกัดจำนวน'
               : 'วอลเลย์บอลหญิง · ปิดรับสมัครเฉพาะบาเระใต้ชั่วคราว · กติกา 3 เซต เซตละ 15 · ชนะ 2 เซตรวดจบ'}
           </p>
         </>

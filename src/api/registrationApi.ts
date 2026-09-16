@@ -33,8 +33,6 @@ export function validateFutsalAge(position: PlayerPosition, age: number): string
   return null
 }
 
-export const FUTSAL_REG_LIMIT = 20
-
 /** ปิดรับลงทะเบียนนักกีฬา/ผู้เข้าร่วม หลัง 19 ก.ย. 2569 เวลา 17:00 (เวลาไทย) */
 export const REGISTRATION_DEADLINE = new Date('2026-09-19T17:00:00+07:00')
 
@@ -157,11 +155,6 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     if (holder) {
       throw new Error(`เบอร์นี้ ${holder} ลงทะเบียนไว้แล้ว`)
     }
-
-    const n = await countTeamRegistrations('football', input.teamId)
-    if (n >= FUTSAL_REG_LIMIT) {
-      throw new Error('อปท.นี้ลงทะเบียนฟุตซอลครบ 20 คนแล้ว')
-    }
   }
 
   const { data: registrationId, error } = await supabase.rpc('submit_player_registration', {
@@ -188,11 +181,8 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     if (error.message?.includes('deadline has passed')) {
       throw new Error(REGISTRATION_CLOSED_MESSAGE)
     }
-    if (error.message?.includes('registration limit reached')) {
-      throw new Error('อปท.นี้ลงทะเบียนฟุตซอลครบ 20 คนแล้ว')
-    }
     if (error.message?.includes('check') || error.code === '42501') {
-      throw new Error('ลงทะเบียนไม่สำเร็จ — อาจครบโควต้าแล้ว')
+      throw new Error('ลงทะเบียนไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง')
     }
     throw error
   }
