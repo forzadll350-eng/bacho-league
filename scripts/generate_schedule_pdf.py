@@ -28,7 +28,6 @@ PURPLE = HexColor("#6F3AA6")
 PURPLE_DARK = HexColor("#4B2476")
 BLUE = HexColor("#2C5F93")
 BLUE_SOFT = HexColor("#E7F0F8")
-RED_SOFT = HexColor("#FCE8E3")
 GREEN_SOFT = HexColor("#E5F5EC")
 PURPLE_SOFT = HexColor("#F1E9FA")
 LINE = HexColor("#D9D7D0")
@@ -237,12 +236,12 @@ def draw_volleyball_page(c: canvas.Canvas):
     draw_text(c, group_b, 48 + (PAGE_W - 64) / 2, PAGE_H - 161, 8.4, PURPLE_DARK, BOLD)
 
     rows = [
-        ("10:00–10:40", "รอบ 1", "อบต.บาเจาะ พบ บาเระเหนือ", "กาเยาะมาตี พบ ปะลุกาสาเมาะ", False),
-        ("10:40–11:20", "รอบ 1", "ต้นไทร พบ เทศบาลบาเจาะ", "บาเระใต้ พบ ลุโบะสาวอ", True),
-        ("11:20–12:00", "รอบ 2", "อบต.บาเจาะ พบ ต้นไทร", "กาเยาะมาตี พบ บาเระใต้", True),
-        ("12:00–12:40", "รอบ 2", "บาเระเหนือ พบ เทศบาลบาเจาะ", "ปะลุกาสาเมาะ พบ ลุโบะสาวอ", False),
-        ("12:40–13:20", "รอบ 3", "อบต.บาเจาะ พบ เทศบาลบาเจาะ", "กาเยาะมาตี พบ ลุโบะสาวอ", False),
-        ("13:20–14:00", "รอบ 3", "บาเระเหนือ พบ ต้นไทร", "ปะลุกาสาเมาะ พบ บาเระใต้", True),
+        ("10:00–10:40", "รอบ 1", "อบต.บาเจาะ พบ บาเระเหนือ", "กาเยาะมาตี พบ ปะลุกาสาเมาะ"),
+        ("10:40–11:20", "รอบ 1", "ต้นไทร พบ เทศบาลบาเจาะ", "บาเระใต้ พบ ลุโบะสาวอ"),
+        ("11:20–12:00", "รอบ 2", "อบต.บาเจาะ พบ ต้นไทร", "กาเยาะมาตี พบ บาเระใต้"),
+        ("12:00–12:40", "รอบ 2", "บาเระเหนือ พบ เทศบาลบาเจาะ", "ปะลุกาสาเมาะ พบ ลุโบะสาวอ"),
+        ("12:40–13:20", "รอบ 3", "อบต.บาเจาะ พบ เทศบาลบาเจาะ", "กาเยาะมาตี พบ ลุโบะสาวอ"),
+        ("13:20–14:00", "รอบ 3", "บาเระเหนือ พบ ต้นไทร", "ปะลุกาสาเมาะ พบ บาเระใต้"),
     ]
 
     x0, y_top = 28, PAGE_H - 188
@@ -255,17 +254,15 @@ def draw_volleyball_page(c: canvas.Canvas):
         x += w
 
     y = y_top - 66
-    for idx, (time, round_label, court1, court2, forfeiture) in enumerate(rows):
+    for idx, (time, round_label, court1, court2) in enumerate(rows):
         h = 38
         shade = WHITE if idx % 2 == 0 else HexColor("#EEECE6")
-        values = [time, round_label, court1, court2, "รอใส่ผล" if forfeiture else "แข่งขัน"]
+        values = [time, round_label, court1, court2, "แข่งขัน"]
         x = x0
         for col, (w, value) in enumerate(zip(widths, values)):
-            fill = RED_SOFT if forfeiture and col in (3, 4) else shade
-            rounded_rect(c, x, y, w - 4, h - 3, fill, 6)
-            color = ORANGE if forfeiture and col in (3, 4) else INK
+            rounded_rect(c, x, y, w - 4, h - 3, shade, 6)
             font = BOLD if col != 1 else REGULAR
-            draw_wrapped(c, value, x + 6, y + 20, w - 16, 8.8, 11, color, font, "center", 2)
+            draw_wrapped(c, value, x + 6, y + 20, w - 16, 8.8, 11, INK, font, "center", 2)
             x += w
         y -= h
 
@@ -274,9 +271,9 @@ def draw_volleyball_page(c: canvas.Canvas):
     draw_text(c, "ที่ 1 สาย A  พบ  ที่ 1 สาย B", PAGE_W - 45, y + 20, 12, WHITE, BOLD, "right")
     draw_text(c, "วอลเลย์บอลไม่มีรอบรองชนะเลิศ", PAGE_W - 45, y + 4, 8.7, HexColor("#E8DAF8"), REGULAR, "right")
 
-    rounded_rect(c, 28, 47, PAGE_W - 56, 49, RED_SOFT, 9)
-    draw_text(c, "กรณีคู่ที่มีบาเระใต้", 42, 78, 10.5, ORANGE, BOLD)
-    draw_text(c, "ยังไม่ให้แต้มล่วงหน้า • เมื่อถึงเวลาแข่ง แอดมินค่อยบันทึกคู่แข่งชนะ 2–0 เซต (15–0, 15–0) และจบการแข่งขัน", 42, 59, 9, INK, REGULAR)
+    rounded_rect(c, 28, 47, PAGE_W - 56, 49, GREEN_SOFT, 9)
+    draw_text(c, "หมายเหตุการแข่งขัน", 42, 78, 10.5, GREEN_DARK, BOLD)
+    draw_text(c, "ทุกคู่แข่งขันตามตารางปกติ • บันทึกผลการแข่งขันจริงในระบบหลังจบแต่ละคู่", 42, 59, 9, INK, REGULAR)
     draw_footer(c, 2)
     c.showPage()
 
