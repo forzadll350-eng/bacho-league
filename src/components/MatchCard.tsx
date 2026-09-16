@@ -5,6 +5,7 @@ import { formatElapsedClock, isMatchPlaying } from '../lib/matchClock'
 import { GoalChips } from './GoalChips'
 import { canShareMatch, openMatchShare } from '../lib/matchShare'
 import { matchOrderLabel } from '../lib/matchOrder'
+import { isLongTeamLocality, splitTeamName } from '../lib/teamName'
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('th-TH', {
@@ -53,27 +54,18 @@ function pointsDisplay(m: Match) {
   }
 }
 
-const TEAM_ORG_PREFIXES = ['เทศบาลตำบล', 'อบต.'] as const
-
-function splitTeamName(nameTh: string) {
-  const fullName = nameTh.trim()
-  const org = TEAM_ORG_PREFIXES.find((prefix) => fullName.startsWith(prefix))
-
-  if (!org) return { org: null, locality: fullName }
-
-  const locality = fullName.slice(org.length).trim()
-  return locality ? { org, locality } : { org: null, locality: fullName }
-}
-
 function MiniTeamName({ nameTh }: { nameTh: string }) {
   const { org, locality } = splitTeamName(nameTh)
+  const localityClass = [
+    'mini-team-locality',
+    org ? '' : 'single',
+    isLongTeamLocality(locality) ? 'long' : '',
+  ].filter(Boolean).join(' ')
 
   return (
     <span className="mini-team-name">
       {org ? <span className="mini-team-org">{org}</span> : null}
-      <span className={`mini-team-locality${org ? '' : ' single'}`}>
-        {locality}
-      </span>
+      <span className={localityClass}>{locality}</span>
     </span>
   )
 }

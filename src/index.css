@@ -411,8 +411,47 @@ button {
 }
 
 .g-side {
+  display: grid;
+  justify-items: center;
+  align-content: start;
   text-align: center;
   min-width: 0;
+}
+
+.g-team-name {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.5rem;
+}
+
+.g-team-org {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.g-team-locality {
+  max-width: 100%;
+  font-size: clamp(13px, 3.8vw, 16px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+
+.g-team-locality.long {
+  font-size: clamp(11px, 3.15vw, 13px);
+  letter-spacing: -0.04em;
+}
+
+.g-team-locality.single {
+  font-size: clamp(11px, 3.2vw, 14px);
 }
 
 .g-score-stack {
@@ -420,7 +459,7 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  min-width: 8rem;
+  min-width: 5.25rem;
   padding-top: 18px;
 }
 
@@ -428,8 +467,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 22px;
-  min-width: 8rem;
+  gap: 4px;
+  min-width: 5.25rem;
 }
 
 .g-points {
@@ -456,21 +495,21 @@ button {
 }
 
 .g-num {
-  font-size: 46px;
+  font-size: clamp(38px, 12vw, 46px);
   line-height: 1;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
-  min-width: 1.1em;
+  min-width: 0.78em;
   text-align: center;
 }
 
 .g-dash {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 500;
   opacity: 0.8;
   line-height: 1;
-  width: 0.75em;
+  width: 0.5em;
   text-align: center;
   flex-shrink: 0;
 }
@@ -1045,23 +1084,34 @@ button {
 
 .match-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.75rem minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 2.25rem minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  min-height: 104px;
+  gap: 6px;
+  min-height: 48px;
 }
 
 .mini-team {
   display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 7px;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
   min-width: 0;
   text-align: center;
 }
 
 .mini-team.right {
+  grid-template-columns: minmax(0, 1fr) 2.25rem;
   text-align: center;
+}
+
+.mini-team.right .mini-crest {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.mini-team.right .mini-team-name {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .mini-team-name {
@@ -1071,43 +1121,46 @@ button {
   gap: 1px;
   width: 100%;
   min-width: 0;
-  min-height: 2.75rem;
   text-align: center;
 }
 
 .mini-team-org {
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 8px;
+  font-weight: 400;
   line-height: 1.15;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .mini-team-locality {
   max-width: 100%;
-  font-size: clamp(13px, 4vw, 16px);
+  font-size: clamp(9px, 2.8vw, 12px);
   font-weight: 700;
-  line-height: 1.18;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
 }
 
 .mini-team-locality.single {
-  font-size: clamp(12px, 3.6vw, 14px);
-  line-height: 1.25;
+  font-size: clamp(9px, 2.6vw, 11px);
+}
+
+.mini-team-locality.long {
+  font-size: clamp(8px, 2.3vw, 10.5px);
+  letter-spacing: -0.05em;
 }
 
 .mini-crest {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   object-fit: contain;
   background: transparent;
 }
 
 .mini-score {
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 30px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -1120,12 +1173,12 @@ button {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: 4.75rem;
+  min-width: 2.25rem;
 }
 
 .mini-points {
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 11px;
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;

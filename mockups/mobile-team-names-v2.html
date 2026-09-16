@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Mockup ชื่อทีมบรรทัดเดียว</title>
+    <link rel="stylesheet" href="../src/index.css" />
+    <style>
+      /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */
+      /* Hallmark · component: live match + match list · genre: atmospheric
+       * tone: existing Bacho League · organization label above locality
+       * mobile: pass target 320 / 375 / 414 / 768
+       */
+      :root {
+        --mock-page: var(--bg);
+        --mock-surface: var(--panel2);
+        --mock-surface-soft: var(--panel3);
+        --mock-ink: var(--ink);
+        --mock-muted: var(--muted);
+        --mock-rule: var(--line);
+        --mock-live: var(--live);
+        --mock-space-3xs: 0.25rem;
+        --mock-space-2xs: 0.5rem;
+        --mock-space-xs: 0.75rem;
+        --mock-space-sm: 1rem;
+        --mock-space-md: 1.5rem;
+        --mock-radius-sm: 0.75rem;
+        --mock-radius-md: 1.25rem;
+        --mock-radius-lg: 1.75rem;
+        --mock-font: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+        --mock-num: 'IBM Plex Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      }
+
+      html,
+      body {
+        overflow-x: clip;
+      }
+
+      body {
+        min-height: 100svh;
+        margin: 0;
+        background: var(--mock-page);
+        color: var(--mock-ink);
+        font-family: var(--mock-font);
+      }
+
+      .screen {
+        width: min(100%, 23.4375rem);
+        min-height: 100svh;
+        margin-inline: auto;
+        padding: 2rem 1rem 3rem;
+      }
+
+      .page-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--mock-space-xs);
+        margin-block-end: var(--mock-space-sm);
+      }
+
+      .page-head h1,
+      .section-head h2 {
+        margin: 0;
+        font-style: normal;
+        letter-spacing: -0.035em;
+      }
+
+      .page-head h1 {
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      .page-head p,
+      .section-head span {
+        margin: 0;
+        color: var(--mock-muted);
+        font-size: 0.6875rem;
+        white-space: nowrap;
+      }
+
+      .round-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--mock-space-3xs);
+        margin-block-end: var(--mock-space-sm);
+        padding: var(--mock-space-3xs);
+        border: 1px solid var(--mock-rule);
+        border-radius: var(--mock-radius-md);
+        background: var(--mock-surface);
+      }
+
+      .round-tabs span {
+        display: grid;
+        min-height: 2.625rem;
+        place-items: center;
+        border-radius: var(--mock-radius-sm);
+        color: var(--mock-muted);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .round-tabs .active {
+        background: var(--mock-ink);
+        color: var(--bg);
+      }
+
+      .hero-card {
+        position: relative;
+        overflow: clip;
+        padding: var(--mock-space-sm);
+        border: 1px solid color-mix(in srgb, var(--violet) 36%, transparent);
+        border-radius: var(--mock-radius-lg);
+        background:
+          radial-gradient(circle at 18% 4%, color-mix(in srgb, var(--blue) 32%, transparent), transparent 44%),
+          radial-gradient(circle at 84% 0%, color-mix(in srgb, var(--violet) 34%, transparent), transparent 42%),
+          var(--mock-surface);
+      }
+
+      .hero-top,
+      .section-head,
+      .list-card__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mock-space-2xs);
+      }
+
+      .hero-top {
+        color: var(--mock-muted);
+        font-size: 0.6875rem;
+      }
+
+      .time-pill,
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 1.875rem;
+        padding-inline: var(--mock-space-xs);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--mock-ink) 8%, transparent);
+        color: var(--mock-ink);
+        font-family: var(--mock-num);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .hero-match {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 4.5rem minmax(0, 1fr);
+        align-items: center;
+        gap: var(--mock-space-2xs);
+        min-height: 13.25rem;
+      }
+
+      .hero-team {
+        display: grid;
+        justify-items: center;
+        gap: var(--mock-space-2xs);
+        min-width: 0;
+        text-align: center;
+      }
+
+      .hero-team img {
+        width: 4.75rem;
+        height: 4.75rem;
+        object-fit: contain;
+      }
+
+      .team-label {
+        display: grid;
+        justify-items: center;
+        gap: 0.125rem;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .team-place {
+        max-width: 100%;
+        font-size: clamp(0.8125rem, 4vw, 1rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.025em;
+        white-space: nowrap;
+      }
+
+      .team-org {
+        color: var(--mock-muted);
+        font-size: 0.625rem;
+        font-weight: 500;
+        line-height: 1.15;
+        white-space: nowrap;
+      }
+
+      .hero-score {
+        display: grid;
+        justify-items: center;
+        gap: var(--mock-space-3xs);
+        font-family: var(--mock-num);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hero-score strong {
+        font-size: 2.875rem;
+        line-height: 1;
+        letter-spacing: -0.06em;
+      }
+
+      .hero-score span {
+        color: var(--mock-live);
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .hero-foot {
+        color: var(--mock-muted);
+        font-size: 0.6875rem;
+        text-align: center;
+      }
+
+      .section-head {
+        margin: 1.75rem 0 var(--mock-space-xs);
+      }
+
+      .section-head h2 {
+        font-size: 1.25rem;
+        line-height: 1.1;
+      }
+
+      .match-list {
+        display: grid;
+        gap: var(--mock-space-2xs);
+      }
+
+      .list-card {
+        display: grid;
+        gap: var(--mock-space-xs);
+        padding: var(--mock-space-xs) var(--mock-space-sm);
+        border: 1px solid var(--mock-rule);
+        border-radius: var(--mock-radius-md);
+        background: var(--mock-surface);
+      }
+
+      .list-card__top {
+        color: var(--mock-muted);
+        font-family: var(--mock-num);
+        font-size: 0.625rem;
+      }
+
+      .status-pill {
+        min-height: 1.625rem;
+        color: var(--mock-muted);
+        font-family: var(--mock-font);
+        font-size: 0.625rem;
+      }
+
+      .status-pill.live {
+        color: var(--mock-live);
+      }
+
+      .list-match {
+        display: grid;
+        grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem minmax(0, 1fr) 2.25rem;
+        align-items: center;
+        gap: 0.375rem;
+        min-height: 3rem;
+      }
+
+      .list-match img {
+        width: 2.25rem;
+        height: 2.25rem;
+        object-fit: contain;
+      }
+
+      .list-team {
+        display: grid;
+        justify-items: center;
+        gap: 0.0625rem;
+        min-width: 0;
+        text-align: center;
+      }
+
+      .list-team .team-place {
+        font-size: clamp(0.625rem, 2.95vw, 0.75rem);
+        letter-spacing: -0.04em;
+      }
+
+      .list-team .team-org {
+        font-size: 0.5rem;
+      }
+
+      .list-score {
+        color: var(--mock-ink);
+        font-family: var(--mock-num);
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 21rem) {
+        .screen {
+          padding-inline: var(--mock-space-xs);
+        }
+
+        .hero-team img {
+          width: 4.25rem;
+          height: 4.25rem;
+        }
+
+        .team-place {
+          font-size: 0.75rem;
+        }
+
+        .list-card {
+          padding-inline: var(--mock-space-xs);
+        }
+
+        .list-match {
+          grid-template-columns: 2rem minmax(0, 1fr) 1.75rem minmax(0, 1fr) 2rem;
+          gap: 0.25rem;
+        }
+
+        .list-match img {
+          width: 2rem;
+          height: 2rem;
+        }
+
+        .list-team .team-place {
+          font-size: 0.5625rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="screen">
+      <header class="page-head">
+        <div>
+          <h1>วันแข่งขัน</h1>
+          <p>21 ก.ย. 2569 · สองสายสองสนาม</p>
+        </div>
+        <p>สายใยสัมพันธ์ 2569</p>
+      </header>
+
+      <div class="round-tabs" aria-label="ตัวอย่างแท็บรอบการแข่งขัน">
+        <span>สาย A · สนาม A</span>
+        <span class="active">สาย B · สนาม B</span>
+        <span>รอบน็อคเอาต์</span>
+      </div>
+
+      <article class="hero-card" aria-label="บาเระใต้ พบ บาเระเหนือ">
+        <div class="hero-top">
+          <span>ฟุตซอล · สาย B · สนามที่ 2</span>
+          <span class="time-pill">10:00–10:25</span>
+        </div>
+
+        <div class="hero-match">
+          <section class="hero-team" aria-label="องค์การบริหารส่วนตำบลบาเระใต้">
+            <img src="/crests/barehtai.webp" alt="" width="76" height="76" />
+            <span class="team-label">
+              <span class="team-org">อบต.</span>
+              <span class="team-place">บาเระใต้</span>
+            </span>
+          </section>
+
+          <div class="hero-score" aria-label="เสมอ 0 ต่อ 0">
+            <strong>0–0</strong>
+            <span>12:48</span>
+          </div>
+
+          <section class="hero-team" aria-label="องค์การบริหารส่วนตำบลบาเระเหนือ">
+            <img src="/crests/bare-nuea.webp" alt="" width="76" height="76" />
+            <span class="team-label">
+              <span class="team-org">อบต.</span>
+              <span class="team-place">บาเระเหนือ</span>
+            </span>
+          </section>
+        </div>
+
+        <div class="hero-foot">รอบที่ 1 · นัดที่ 1</div>
+      </article>
+
+      <header class="section-head">
+        <h2>การแข่งขันสาย B</h2>
+        <span>ดูทั้งหมด</span>
+      </header>
+
+      <section class="match-list" aria-label="ตัวอย่างรายการแข่งขัน">
+        <article class="list-card">
+          <div class="list-card__top">
+            <span>10:00–10:25</span>
+            <span class="status-pill">รอแข่งขัน</span>
+          </div>
+          <div class="list-match">
+            <img src="/crests/barehtai.webp" alt="" width="36" height="36" />
+            <span class="list-team"><span class="team-org">อบต.</span><span class="team-place">บาเระใต้</span></span>
+            <span class="list-score">—</span>
+            <span class="list-team"><span class="team-org">อบต.</span><span class="team-place">บาเระเหนือ</span></span>
+            <img src="/crests/bare-nuea.webp" alt="" width="36" height="36" />
+          </div>
+        </article>
+
+        <article class="list-card">
+          <div class="list-card__top">
+            <span>10:30–10:55</span>
+            <span class="status-pill">รอแข่งขัน</span>
+          </div>
+          <div class="list-match">
+            <img src="/crests/bacho-municipal.webp" alt="" width="36" height="36" />
+            <span class="list-team"><span class="team-org">เทศบาลตำบล</span><span class="team-place">บาเจาะ</span></span>
+            <span class="list-score">—</span>
+            <span class="list-team"><span class="team-org">อบต.</span><span class="team-place">ปะลุกาสาเมาะ</span></span>
+            <img src="/crests/palukasamoh.webp" alt="" width="36" height="36" />
+          </div>
+        </article>
+
+        <article class="list-card">
+          <div class="list-card__top">
+            <span>11:00–11:25</span>
+            <span class="status-pill live">กำลังแข่งขัน</span>
+          </div>
+          <div class="list-match">
+            <img src="/crests/kayoh-mati.webp" alt="" width="36" height="36" />
+            <span class="list-team"><span class="team-org">อบต.</span><span class="team-place">กาเยาะมาตี</span></span>
+            <span class="list-score">1–1</span>
+            <span class="list-team"><span class="team-org">อบต.</span><span class="team-place">ลุโบะสาวอ</span></span>
+            <img src="/crests/lubosawo.webp" alt="" width="36" height="36" />
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

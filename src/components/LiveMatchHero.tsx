@@ -5,6 +5,7 @@ import { TeamCrest } from './TeamCrest'
 import { LeadAura } from './LeadAura'
 import { GoalChips } from './GoalChips'
 import type { LiveHeroData, MatchGoal, MatchStatus } from '../types/sports'
+import { isLongTeamLocality, splitTeamName } from '../lib/teamName'
 
 function parseScore(score: string): { home: number; away: number } | null {
   const m = score.match(/(\d+)\s*[–-]\s*(\d+)/)
@@ -60,6 +61,8 @@ export function LiveMatchHero({
 }) {
   const { sport, data } = useApp()
   const h = hero ?? data.hero
+  const homeName = splitTeamName(h.home.nameTh)
+  const awayName = splitTeamName(h.away.nameTh)
   const isV = sport === 'volleyball'
   const scores = parseScore(h.score)
   const displayGoals = !isV && homeTeamId && goals && goals.length > 0 ? goals : []
@@ -95,7 +98,12 @@ export function LiveMatchHero({
             {homeLeading ? <LeadAura /> : null}
             <TeamCrest team={h.home} />
           </div>
-          <b>{h.home.nameTh}</b>
+          <span className="g-team-name">
+            {homeName.org ? <span className="g-team-org">{homeName.org}</span> : null}
+            <b className={`g-team-locality${homeName.org ? '' : ' single'}${isLongTeamLocality(homeName.locality) ? ' long' : ''}`}>
+              {homeName.locality}
+            </b>
+          </span>
         </div>
 
         <div className="g-score-stack">
@@ -137,7 +145,12 @@ export function LiveMatchHero({
             {awayLeading ? <LeadAura /> : null}
             <TeamCrest team={h.away} />
           </div>
-          <b>{h.away.nameTh}</b>
+          <span className="g-team-name">
+            {awayName.org ? <span className="g-team-org">{awayName.org}</span> : null}
+            <b className={`g-team-locality${awayName.org ? '' : ' single'}${isLongTeamLocality(awayName.locality) ? ' long' : ''}`}>
+              {awayName.locality}
+            </b>
+          </span>
         </div>
       </div>
 
