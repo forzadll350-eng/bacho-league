@@ -179,7 +179,8 @@ const LEGACY_KNOCKOUT_PLACEHOLDERS: Record<string, [string, string]> = {
 
 const KNOCKOUT_SLOTS: Record<string, [string, string]> = {
   'fb-sf-1': ['slot-a1', 'slot-b2'],
-  'fb-sf-2': ['slot-a2', 'slot-b1'],
+  'fb-sf-2': ['slot-b1', 'slot-a2'],
+  'fb-third': ['slot-sf1-loser', 'slot-sf2-loser'],
   'fb-final': ['slot-sf1', 'slot-sf2'],
   'vb-final': ['slot-a1', 'slot-b1'],
 }
@@ -235,7 +236,10 @@ function mapMatch(
     detail: false,
     groupCode: row.group_code === 'A' || row.group_code === 'B' ? row.group_code : undefined,
     stage:
-      row.stage === 'group' || row.stage === 'semi' || row.stage === 'final'
+      row.stage === 'group' ||
+      row.stage === 'semi' ||
+      row.stage === 'third' ||
+      row.stage === 'final'
         ? row.stage
         : undefined,
     courtLabel: row.court_label ?? undefined,
@@ -347,6 +351,7 @@ function enrichStandingsWithGoals(table: StandingRow[], matches: Match[]): Stand
       m.status === 'finished' &&
       Boolean(m.groupCode) &&
       m.stage !== 'semi' &&
+      m.stage !== 'third' &&
       m.stage !== 'final'
     if (!countsForPoints) continue
 

@@ -12,7 +12,7 @@ export function MatchesPage() {
   const filtered = useMemo(() => {
     return data.matches
       .filter((m) => {
-        if (m.stage === 'semi' || m.stage === 'final') return false
+        if (m.stage === 'semi' || m.stage === 'third' || m.stage === 'final') return false
         if (groupTab === 'A') return m.groupCode === 'A'
         if (groupTab === 'B') return m.groupCode === 'B'
         return true

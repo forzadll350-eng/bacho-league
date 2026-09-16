@@ -19,7 +19,7 @@ export function StandingsPage() {
   const knockout = useMemo(
     () =>
       data.matches
-        .filter((m) => m.stage === 'semi' || m.stage === 'final')
+        .filter((m) => m.stage === 'semi' || m.stage === 'third' || m.stage === 'final')
         .sort(compareMatchOrder),
     [data.matches],
   )
@@ -65,6 +65,13 @@ export function StandingsPage() {
               <div className="knockout-step">
                 <span className="knockout-label">รองฯ</span>
                 <p>A1 พบ B2 · A2 พบ B1 · ยังไม่รู้ทีมจนกว่าจบสาย</p>
+              </div>
+              <div className="knockout-arrow" aria-hidden>
+                →
+              </div>
+              <div className="knockout-step">
+                <span className="knockout-label">ชิงอันดับ 3</span>
+                <p>ผู้แพ้รองฯ 1 พบ ผู้แพ้รองฯ 2</p>
               </div>
               <div className="knockout-arrow" aria-hidden>
                 →

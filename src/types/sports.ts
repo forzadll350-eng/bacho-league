@@ -19,7 +19,7 @@ export type AppPage =
 
 export type ThemeMode = 'dark' | 'light'
 
-export type MatchStage = 'group' | 'semi' | 'final'
+export type MatchStage = 'group' | 'semi' | 'third' | 'final'
 
 export type PlayerPosition =
   | 'admin_exec'

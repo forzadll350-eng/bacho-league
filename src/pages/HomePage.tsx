@@ -38,7 +38,10 @@ function formatClock(match: Match) {
 }
 
 function isKnockoutMatch(match: Match, sport: Match['sport']): boolean {
-  return match.stage === 'final' || (sport === 'football' && match.stage === 'semi')
+  return (
+    match.stage === 'final' ||
+    (sport === 'football' && (match.stage === 'semi' || match.stage === 'third'))
+  )
 }
 
 function pickHomeMatch(
@@ -65,6 +68,7 @@ function pickHomeMatch(
 
 function knockoutLabel(match: Match | undefined, sport: Match['sport']): string {
   if (match?.stage === 'final' || sport === 'volleyball') return 'รอบชิงชนะเลิศ'
+  if (match?.stage === 'third') return 'ชิงอันดับ 3'
   if (match?.stage === 'semi') return 'รอบรองชนะเลิศ'
   return 'รอบรอง / รอบชิง'
 }
@@ -156,11 +160,11 @@ export function HomePage() {
     [activeView, data.table],
   )
   const topScorer = data.topScorers[0]
-  const knockoutTabLabel = sport === 'football' ? 'รอบรอง/ชิง' : 'รอบชิง'
+  const knockoutTabLabel = sport === 'football' ? 'รอบน็อคเอาต์' : 'รอบชิง'
   const matchSectionTitle =
     activeView === 'knockout'
       ? sport === 'football'
-        ? 'รอบรองและรอบชิงชนะเลิศ'
+        ? 'รอบรอง ชิงอันดับ 3 และชิงชนะเลิศ'
         : 'รอบชิงชนะเลิศ'
       : `การแข่งขันสาย ${activeView}`
 

@@ -35,5 +35,8 @@ public/share/*-demo.*
 admin/.env
 admin/dist
 admin/node_modules
+tmp/
+__pycache__/
+*.pyc
 
 .vercel

@@ -247,7 +247,7 @@ export function DashboardPage({
             { key: 'all' as const, label: 'ทั้งหมด', count: matches.length },
             { key: 'A' as const, label: 'สาย A', count: groupCounts.A },
             { key: 'B' as const, label: 'สาย B', count: groupCounts.B },
-            { key: 'knockout' as const, label: 'รอบชิง', count: groupCounts.knockout },
+            { key: 'knockout' as const, label: 'น็อคเอาต์', count: groupCounts.knockout },
           ] as const
         ).map((g) =>
           g.count === 0 && g.key !== 'all' ? null : (

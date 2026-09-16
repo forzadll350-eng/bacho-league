@@ -26,9 +26,11 @@ function resolveVictory(match: Match): VictoryPayload {
   const isFinal = match.stage === 'final'
   const groupLabel = isFinal
     ? 'นัดชิงชนะเลิศ'
-    : match.groupCode
-      ? `สาย ${match.groupCode}${match.courtLabel ? ` · ${match.courtLabel}` : ''}`
-      : match.courtLabel || match.periodLabel || 'การแข่งขัน'
+    : match.stage === 'third'
+      ? 'ชิงอันดับ 3'
+      : match.groupCode
+        ? `สาย ${match.groupCode}${match.courtLabel ? ` · ${match.courtLabel}` : ''}`
+        : match.courtLabel || match.periodLabel || 'การแข่งขัน'
   const kickoffLabel = new Date(match.scheduledAt).toLocaleDateString('th-TH', {
     day: 'numeric',
     month: 'short',

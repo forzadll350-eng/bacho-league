@@ -118,6 +118,22 @@ export const SLOT_TEAMS: Record<string, Team> = {
     crestUrl: '/crests/league.webp',
     orgTh: 'รอผลรองฯ',
   },
+  slotSf1Loser: {
+    id: 'slot-sf1-loser',
+    nameTh: 'ผู้แพ้รองฯ 1',
+    nameEn: 'SF1 Loser',
+    shortName: 'L1',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลรองฯ',
+  },
+  slotSf2Loser: {
+    id: 'slot-sf2-loser',
+    nameTh: 'ผู้แพ้รองฯ 2',
+    nameEn: 'SF2 Loser',
+    shortName: 'L2',
+    crestUrl: '/crests/league.webp',
+    orgTh: 'รอผลรองฯ',
+  },
 }
 
 /** ลำดับตามที่กำหนด */

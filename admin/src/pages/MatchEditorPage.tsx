@@ -626,7 +626,15 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         </button>
         <h2>
           {match.sport === 'volleyball' ? 'วอลเลย์' : 'ฟุตซอล'}
-          {match.group_code ? ` · สาย ${match.group_code}` : match.stage === 'final' ? ' · นัดชิง' : match.stage === 'semi' ? ' · รองฯ' : ''}
+          {match.group_code
+            ? ` · สาย ${match.group_code}`
+            : match.stage === 'final'
+              ? ' · นัดชิง'
+              : match.stage === 'third'
+                ? ' · ชิงอันดับ 3'
+                : match.stage === 'semi'
+                  ? ' · รองฯ'
+                  : ''}
         </h2>
       </div>
 
@@ -635,7 +643,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
           <label htmlFor="match-order">
             {match.group_code
               ? `ลำดับการแข่งขันในสาย ${match.group_code}`
-              : 'ลำดับรอบรอง / รอบชิง'}
+              : 'ลำดับรอบน็อคเอาต์'}
           </label>
           <select
             id="match-order"
