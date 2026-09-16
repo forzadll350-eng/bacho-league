@@ -245,7 +245,12 @@ function mapMatch(
     courtLabel: row.court_label ?? undefined,
     hideScheduleTime: Boolean(row.hide_schedule_time),
     matchOrder: row.match_order ?? undefined,
-    goals: goalsByMatch.get(row.id) ?? [],
+    // Never publish scorer rows from a match that has not started. This also
+    // prevents old admin test events from appearing after a schedule reset.
+    goals:
+      row.status === 'live' || row.status === 'halftime' || row.status === 'finished'
+        ? (goalsByMatch.get(row.id) ?? [])
+        : [],
   }
   return base
 }
