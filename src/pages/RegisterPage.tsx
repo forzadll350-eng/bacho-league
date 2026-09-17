@@ -5,6 +5,7 @@ import {
   RegistrationPosterModal,
   useRegistrationPoster,
 } from '../components/RegistrationPosterModal'
+import { RegistrationConsentModal } from '../components/RegistrationConsentModal'
 import {
   FUTSAL_CONTRACT_MIN_AGE,
   POSITION_OPTIONS,
@@ -48,6 +49,7 @@ export function RegisterPage() {
   const [count, setCount] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const [alert, setAlert] = useState<RegAlert | null>(null)
+  const [consentOpen, setConsentOpen] = useState(false)
 
   const isFutsal = sport === 'football'
   const contractNeedsAge35 = isFutsal && position === 'contract'
@@ -86,7 +88,7 @@ export function RegisterPage() {
     if (wasOk || wasClosed) setPage('home')
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!isRegistrationOpen()) {
       setAlert({ kind: 'closed', message: REGISTRATION_CLOSED_MESSAGE })
@@ -111,6 +113,15 @@ export function RegisterPage() {
       showErr('กรุณากรอกอายุให้ถูกต้อง')
       return
     }
+    setConsentOpen(true)
+  }
+
+  async function confirmRegistration(consent: {
+    rulesAccepted: boolean
+    privacyAcknowledged: true
+    publicRosterConsent: boolean
+  }) {
+    const ageNum = Number(age)
     setBusy(true)
     try {
       let uploadedPhoto: Awaited<ReturnType<typeof uploadPlayerPhoto>> | undefined
@@ -126,6 +137,9 @@ export function RegisterPage() {
           age: ageNum,
           jerseyNumber: jersey || undefined,
           photoUrl: uploadedPhoto?.publicUrl,
+          rulesAccepted: consent.rulesAccepted,
+          privacyAcknowledged: consent.privacyAcknowledged,
+          publicRosterConsent: consent.publicRosterConsent,
         })
       } catch (submitError) {
         if (uploadedPhoto) await discardUnregisteredPlayerPhoto(uploadedPhoto.path)
@@ -135,10 +149,12 @@ export function RegisterPage() {
       setAge('')
       setJersey('')
       setPhoto(null)
+      setConsentOpen(false)
       setCount((n) => (n == null ? n : n + 1))
       setAlert({ kind: 'ok', message: 'ลงทะเบียนนักกีฬาสำเร็จ' })
     } catch (ex: unknown) {
       const msg = ex instanceof Error ? ex.message : 'ลงทะเบียนไม่สำเร็จ'
+      setConsentOpen(false)
       if (msg === REGISTRATION_CLOSED_MESSAGE) {
         setAlert({ kind: 'closed', message: msg })
       } else {
@@ -286,7 +302,7 @@ export function RegisterPage() {
             ) : null}
 
             <button type="submit" className="reg-submit" disabled={busy || formLocked}>
-              {busy ? 'กำลังบันทึก…' : 'ลงทะเบียนนักกีฬา'}
+              ตรวจข้อมูลและอ่านข้อตกลง
             </button>
           </form>
 
@@ -297,6 +313,25 @@ export function RegisterPage() {
           </p>
         </>
       )}
+
+      <button type="button" className="card roster-cta" onClick={() => setPage('players')}>
+        <span>
+          <b>เช็ครายชื่อนักกีฬา</b>
+          <small>เลือกดูตามประเภทกีฬาและ อปท.</small>
+        </span>
+        <span className="roster-cta-arrow">›</span>
+      </button>
+
+      {consentOpen ? (
+        <RegistrationConsentModal
+          sport={sport}
+          busy={busy}
+          onCancel={() => {
+            if (!busy) setConsentOpen(false)
+          }}
+          onConfirm={(consent) => void confirmRegistration(consent)}
+        />
+      ) : null}
 
       {alert
         ? createPortal(

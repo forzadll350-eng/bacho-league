@@ -94,6 +94,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPageState('attendee')
     } else if (raw === 'register' || raw === 'ลงทะเบียน' || raw === 'athlete') {
       setPageState('register')
+    } else if (
+      raw === 'players' ||
+      raw === 'roster' ||
+      raw === 'รายชื่อนักกีฬา' ||
+      kind === 'players' ||
+      kind === 'roster'
+    ) {
+      setPageState('players')
     }
   }, [])
 

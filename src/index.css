@@ -1,4 +1,6 @@
+/* Hallmark · macrostructure: Filtered Roster · tone: existing league utility · anchor hue: amber · pre-emit critique: P5 H5 E4 S5 R5 V5 · contrast: pass (40–41) · nav: existing bottom tabs · footer: none · slop: pass (42–49) · mobile: pass (34, 49–57) */
 @import 'tailwindcss';
+@import '../tokens.css';
 
 :root,
 [data-theme='dark'] {
@@ -416,6 +418,11 @@ button {
   align-content: start;
   text-align: center;
   min-width: 0;
+}
+
+html,
+body {
+  overflow-x: clip;
 }
 
 .g-team-name {
@@ -2443,6 +2450,9 @@ button {
 
 .reg-submit:disabled {
   opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--panel3);
+  color: var(--muted);
 }
 
 .reg-note {
@@ -2450,6 +2460,505 @@ button {
   font-size: 10px;
   color: var(--muted);
   line-height: 1.45;
+}
+
+.roster-cta {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+}
+
+.roster-cta span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.roster-cta b {
+  font-size: 13px;
+}
+
+.roster-cta small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.roster-cta-arrow {
+  font-size: 24px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+/* —— Registration rules and privacy sheet —— */
+.consent-root {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.consent-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.74);
+  backdrop-filter: blur(6px);
+}
+
+.consent-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(var(--legal-sheet-width), calc(100vw - 24px));
+  height: min(92dvh, 780px);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-legal);
+  background: var(--panel);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.58);
+}
+
+.consent-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px var(--space-md) 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.consent-kicker,
+.page-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--amber);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.consent-head h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.consent-head > button {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--chip);
+  color: var(--ink);
+}
+
+.consent-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-md);
+  scroll-behavior: smooth;
+  outline: none;
+}
+
+.consent-scroll:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--amber);
+}
+
+.legal-block + .legal-block {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.legal-title-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.legal-index {
+  color: var(--muted2);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.legal-title-row p,
+.legal-title-row h3 {
+  margin: 0;
+}
+
+.legal-title-row p {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.legal-title-row h3 {
+  font-size: 16px;
+}
+
+.legal-section + .legal-section {
+  margin-top: 16px;
+}
+
+.legal-section h4 {
+  margin: 0 0 7px;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.legal-section p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.legal-end {
+  min-height: 58px;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-top: 1px dashed var(--line);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.consent-foot {
+  padding: 12px var(--space-md) max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.scroll-hint {
+  margin: 0 0 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.consent-checks {
+  max-height: 31dvh;
+  margin-bottom: 10px;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.consent-checks label {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 9px;
+  align-items: start;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--ink);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.consent-checks input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--green);
+}
+
+.consent-checks .optional-consent {
+  color: var(--muted);
+}
+
+.optional-consent b {
+  color: var(--blue);
+}
+
+.consent-confirm {
+  width: 100%;
+  min-height: var(--rule-control-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+/* —— Consent-based public player roster —— */
+.roster-head {
+  align-items: flex-end;
+}
+
+.roster-total {
+  min-width: 55px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.roster-total b {
+  font-size: 18px;
+  line-height: 1;
+}
+
+#page-players h1,
+.roster-team > header h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.roster-total span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.roster-controls {
+  margin-bottom: 12px;
+  padding: 6px;
+  display: grid;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--panel);
+}
+
+.roster-sports {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--switch-bg);
+}
+
+.roster-sports button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.roster-sports button.active {
+  background: var(--invert);
+  color: var(--invert-ink);
+}
+
+.roster-team-filter {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 0 6px 4px;
+}
+
+.roster-team-filter span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.roster-team-filter select {
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+}
+
+.roster-groups {
+  display: grid;
+  gap: 10px;
+}
+
+.roster-team {
+  overflow: hidden;
+}
+
+.roster-team > header {
+  min-height: 66px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+.roster-team > header img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.roster-team > header h2,
+.roster-team > header p {
+  margin: 0;
+}
+
+.roster-team > header h2 {
+  font-size: 13px;
+}
+
+.roster-team > header p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.roster-list {
+  margin: 0;
+  padding: 2px 13px;
+  list-style: none;
+}
+
+.roster-list li {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.roster-list li:last-child {
+  border-bottom: 0;
+}
+
+.roster-list b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+
+.roster-number {
+  color: var(--muted2);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+}
+
+.jersey-pill {
+  min-width: 38px;
+  height: 27px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.roster-state,
+.roster-empty {
+  padding: 24px 18px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 11px;
+}
+
+.roster-state.error {
+  color: var(--live);
+}
+
+.roster-empty {
+  display: grid;
+  place-items: center;
+  gap: 7px;
+}
+
+.roster-empty h2,
+.roster-empty p {
+  margin: 0;
+}
+
+.roster-empty h2 {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.roster-empty p {
+  max-width: 310px;
+  line-height: 1.5;
+}
+
+.roster-team-empty {
+  margin: 0;
+  padding: 18px 13px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.roster-privacy {
+  margin: 14px 2px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--muted);
+}
+
+.roster-privacy svg {
+  flex: 0 0 auto;
+  color: var(--green);
+}
+
+.roster-privacy p {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media (max-width: 380px) {
+  .consent-root {
+    padding: 0;
+    place-items: end center;
+  }
+
+  .consent-sheet {
+    width: 100%;
+    height: 96dvh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .consent-checks {
+    max-height: 34dvh;
+  }
 }
 
 .match-card-tap {

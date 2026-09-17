@@ -1,4 +1,8 @@
 import { TEAM_LIST } from '../data/teams'
+import {
+  FOOTBALL_RULES_VERSION,
+  PRIVACY_NOTICE_VERSION,
+} from '../data/registrationLegal'
 import { pushRegistrationToSheet } from '../lib/googleSheetsWebhook'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { PlayerPosition, SportType } from '../types/sports'
@@ -145,6 +149,9 @@ export type RegistrationInput = {
   age: number
   jerseyNumber?: string
   photoUrl?: string
+  rulesAccepted: boolean
+  privacyAcknowledged: boolean
+  publicRosterConsent: boolean
 }
 
 export async function submitRegistration(input: RegistrationInput): Promise<void> {
@@ -181,6 +188,11 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     p_age: input.age,
     p_jersey_number: jersey,
     p_photo_url: input.photoUrl || null,
+    p_rules_accepted: input.rulesAccepted,
+    p_rules_version: input.sport === 'football' ? FOOTBALL_RULES_VERSION : null,
+    p_privacy_acknowledged: input.privacyAcknowledged,
+    p_privacy_notice_version: PRIVACY_NOTICE_VERSION,
+    p_public_roster_consent: input.publicRosterConsent,
   })
 
   if (error) {
@@ -196,6 +208,12 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     }
     if (error.message?.includes('deadline has passed')) {
       throw new Error(REGISTRATION_CLOSED_MESSAGE)
+    }
+    if (error.message?.includes('privacy acknowledgement is required')) {
+      throw new Error('กรุณาอ่านและรับทราบประกาศความเป็นส่วนตัว')
+    }
+    if (error.message?.includes('football rules acceptance is required')) {
+      throw new Error('กรุณาอ่านและยอมรับระเบียบการแข่งขันฟุตซอล')
     }
     if (error.message?.includes('check') || error.code === '42501') {
       throw new Error('ลงทะเบียนไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง')
@@ -221,6 +239,34 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     jerseyNumber: jersey ?? '',
     photoUrl: input.photoUrl || '',
   })
+}
+
+export type PublicRosterPlayer = {
+  id: string
+  sport: SportType
+  teamId: string
+  fullName: string
+  jerseyNumber?: string
+}
+
+export async function loadPublicPlayerRoster(sport: SportType): Promise<PublicRosterPlayer[]> {
+  if (!isSupabaseConfigured || !supabase) return []
+
+  const { data, error } = await supabase
+    .from('public_player_roster')
+    .select('id, sport, team_id, full_name, jersey_number')
+    .eq('sport', sport)
+    .order('full_name', { ascending: true })
+
+  if (error) throw new Error('โหลดรายชื่อนักกีฬาไม่สำเร็จ กรุณาลองใหม่')
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    sport: row.sport as SportType,
+    teamId: row.team_id,
+    fullName: row.full_name,
+    jerseyNumber: row.jersey_number ?? undefined,
+  }))
 }
 
 export function teamsForSelect(sport?: SportType) {

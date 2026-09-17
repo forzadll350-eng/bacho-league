@@ -12,7 +12,9 @@ const ITEMS: { id: AppPage; label: string; icon: typeof Home }[] = [
 export function BottomNavigation() {
   const { page, setPage } = useApp()
   const activePage =
-    page === 'register' || page === 'attendee' || page === 'vote' ? 'more' : page
+    page === 'register' || page === 'attendee' || page === 'players' || page === 'vote'
+      ? 'more'
+      : page
 
   return (
     <nav className="bottom-nav" aria-label="เมนูหลัก">

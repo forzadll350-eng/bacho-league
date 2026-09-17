@@ -30,6 +30,14 @@ export function MorePage() {
         <div className="chev">›</div>
       </button>
 
+      <button type="button" className="card menu-cta" onClick={() => setPage('players')}>
+        <div>
+          <div className="menu-title">เช็ครายชื่อนักกีฬา</div>
+          <div className="menu-sub">เลือกประเภทกีฬาและ อปท. · แสดงเฉพาะผู้ที่ยินยอม</div>
+        </div>
+        <div className="chev">›</div>
+      </button>
+
       <button type="button" className="card menu-cta" onClick={() => setPage('vote')}>
         <div>
           <div className="menu-title">โหวตนักกีฬาขวัญใจ อำเภอบาเจาะ</div>

@@ -1,0 +1,16 @@
+:root {
+  --legal-sheet-width: 560px;
+  --radius-legal: 20px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --rule-control-height: 44px;
+}
+
+@media (max-width: 380px) {
+  :root {
+    --space-md: 12px;
+  }
+}

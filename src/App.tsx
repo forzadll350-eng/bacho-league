@@ -11,6 +11,7 @@ import { MorePage } from './pages/MorePage'
 import { RegisterPage } from './pages/RegisterPage'
 import { AttendeePage } from './pages/AttendeePage'
 import { VotePage } from './pages/VotePage'
+import { PlayersPage } from './pages/PlayersPage'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <MorePage />
         <RegisterPage />
         <AttendeePage />
+        <PlayersPage />
         <VotePage />
       </div>
       <BottomNavigation />
