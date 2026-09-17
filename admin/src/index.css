@@ -1,6 +1,5 @@
 /* Hallmark · macrostructure: Narrative Workflow · tone: friendly league utility · anchor hue: amber · pre-emit critique: P5 H5 E5 S5 R5 V5 · contrast: pass (40–41) · nav: admin utility header · footer: none · slop: pass (42–45) · honest: pass · chrome: pass · tokens: pass · responsive: pass · icons: pass · mobile: pass */
 @import 'tailwindcss';
-@import '../../tokens.css';
 
 :root,
 [data-theme='dark'] {
