@@ -10,7 +10,7 @@ import type { SportType } from '../types/sports'
 type ConsentResult = {
   rulesAccepted: boolean
   privacyAcknowledged: true
-  publicRosterConsent: boolean
+  publicRosterConsent: true
 }
 
 type Props = {
@@ -42,7 +42,11 @@ export function RegistrationConsentModal({ sport, busy, onCancel, onConfirm }: P
   }
 
   const canConfirm =
-    reachedEnd && privacyAcknowledged && (!isFootball || rulesAccepted) && !busy
+    reachedEnd &&
+    privacyAcknowledged &&
+    publicRosterConsent &&
+    (!isFootball || rulesAccepted) &&
+    !busy
 
   return createPortal(
     <div className="consent-root" role="presentation">
@@ -140,14 +144,15 @@ export function RegistrationConsentModal({ sport, busy, onCancel, onConfirm }: P
                 />
                 <span>ข้าพเจ้าอ่านและรับทราบประกาศความเป็นส่วนตัวแล้ว</span>
               </label>
-              <label className="optional-consent">
+              <label>
                 <input
                   type="checkbox"
                   checked={publicRosterConsent}
                   onChange={(event) => setPublicRosterConsent(event.target.checked)}
                 />
                 <span>
-                  <b>ไม่บังคับ</b> ยินยอมให้แสดงข้อมูลที่จำกัดไว้ในหน้ารายชื่อนักกีฬาสาธารณะ
+                  ข้าพเจ้ายินยอมให้แสดงชื่อ-สกุล อปท./ทีม ประเภทกีฬา และเบอร์เสื้อฟุตซอล
+                  ในหน้ารายชื่อนักกีฬาสาธารณะ
                 </span>
               </label>
             </div>
@@ -160,7 +165,7 @@ export function RegistrationConsentModal({ sport, busy, onCancel, onConfirm }: P
               onConfirm({
                 rulesAccepted,
                 privacyAcknowledged: true,
-                publicRosterConsent,
+                publicRosterConsent: true,
               })
             }
           >

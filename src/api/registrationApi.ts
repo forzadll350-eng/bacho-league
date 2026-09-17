@@ -212,6 +212,9 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     if (error.message?.includes('privacy acknowledgement is required')) {
       throw new Error('กรุณาอ่านและรับทราบประกาศความเป็นส่วนตัว')
     }
+    if (error.message?.includes('public roster consent is required')) {
+      throw new Error('กรุณายินยอมให้แสดงรายชื่อในหน้ารายชื่อนักกีฬาสาธารณะ')
+    }
     if (error.message?.includes('football rules acceptance is required')) {
       throw new Error('กรุณาอ่านและยอมรับระเบียบการแข่งขันฟุตซอล')
     }

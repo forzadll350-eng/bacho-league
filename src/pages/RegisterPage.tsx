@@ -119,7 +119,7 @@ export function RegisterPage() {
   async function confirmRegistration(consent: {
     rulesAccepted: boolean
     privacyAcknowledged: true
-    publicRosterConsent: boolean
+    publicRosterConsent: true
   }) {
     const ageNum = Number(age)
     setBusy(true)
