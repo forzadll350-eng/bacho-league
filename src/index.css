@@ -1,4 +1,4 @@
-/* Hallmark · macrostructure: Filtered Roster · tone: existing league utility · anchor hue: amber · pre-emit critique: P5 H5 E4 S5 R5 V5 · contrast: pass (40–41) · nav: existing bottom tabs · footer: none · slop: pass (42–49) · mobile: pass (34, 49–57) */
+/* Hallmark · macrostructure: Narrative Workflow · tone: friendly league utility · anchor hue: amber · pre-emit critique: P5 H5 E5 S5 R5 V5 · contrast: pass (40–41) · nav: existing bottom tabs · footer: none · slop: pass (42–45) · honest: pass · chrome: pass · tokens: pass · responsive: pass · icons: pass · mobile: pass */
 @import 'tailwindcss';
 @import '../tokens.css';
 
@@ -69,14 +69,21 @@ body,
 }
 
 body {
+  overflow-x: clip;
   font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
+}
+
+html {
+  overflow-x: clip;
 }
 
 button {
@@ -3950,5 +3957,342 @@ body {
   100% {
     transform: scale(1) translateY(0);
     opacity: 1;
+  }
+}
+
+/* —— Satisfaction evaluation —— */
+.evaluation-menu-cta {
+  border-color: color-mix(in srgb, var(--amber) 32%, var(--line));
+  background: color-mix(in srgb, var(--amber) 7%, var(--panel));
+}
+
+.evaluation-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 14px 2px 18px;
+  color: var(--ink);
+}
+
+.evaluation-head > svg {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: var(--amber);
+}
+
+.evaluation-head span {
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.evaluation-head h1 {
+  min-width: 0;
+  margin: 3px 0 2px;
+  font-size: clamp(26px, 8vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.evaluation-head p,
+.evaluation-step header p,
+.evaluation-state p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.evaluation-form {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.evaluation-step {
+  padding: var(--space-md);
+}
+
+.evaluation-step > header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: start;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--line);
+}
+
+.evaluation-step-number {
+  display: grid;
+  place-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.evaluation-step h2,
+.evaluation-state h2 {
+  margin: 0 0 2px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.evaluation-field {
+  display: grid;
+  gap: 7px;
+  margin-top: var(--space-md);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.evaluation-field select,
+.evaluation-field textarea {
+  width: 100%;
+  min-height: var(--evaluation-control-height);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  padding: 11px 12px;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  transition: border-color var(--dur-micro) var(--ease-out-ui), box-shadow var(--dur-micro) var(--ease-out-ui);
+}
+
+.evaluation-field textarea {
+  min-height: 112px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.evaluation-field select:focus-visible,
+.evaluation-field textarea:focus-visible {
+  border-color: var(--amber);
+  outline-color: var(--amber);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 18%, transparent);
+}
+
+.evaluation-field small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 400;
+  text-align: right;
+}
+
+.evaluation-question-list {
+  display: grid;
+}
+
+.evaluation-question,
+.evaluation-return {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-md) 0;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.evaluation-question:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.evaluation-question legend,
+.evaluation-return legend {
+  width: 100%;
+  padding: 0;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.evaluation-question legend span {
+  display: inline-block;
+  width: 28px;
+  color: var(--muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.evaluation-rating {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.evaluation-rating label,
+.evaluation-return label {
+  position: relative;
+  cursor: pointer;
+}
+
+.evaluation-rating input,
+.evaluation-return input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+
+.evaluation-rating label span,
+.evaluation-return label span {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform var(--dur-micro) var(--ease-out-ui), border-color var(--dur-micro) var(--ease-out-ui), background var(--dur-micro) var(--ease-out-ui);
+}
+
+.evaluation-rating label.selected span,
+.evaluation-return label.selected span {
+  border-color: color-mix(in srgb, var(--amber) 68%, var(--line));
+  background: color-mix(in srgb, var(--amber) 15%, var(--panel2));
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.evaluation-rating input:focus-visible + span,
+.evaluation-return input:focus-visible + span {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.evaluation-return > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.evaluation-return label span {
+  min-height: var(--evaluation-control-height);
+  padding: 7px 9px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.evaluation-privacy,
+.evaluation-error {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.evaluation-privacy {
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.evaluation-error {
+  border: 1px solid color-mix(in srgb, var(--live) 38%, var(--line));
+  background: color-mix(in srgb, var(--live) 8%, transparent);
+  color: var(--live);
+}
+
+.evaluation-submit,
+.evaluation-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--evaluation-control-height);
+  padding: 0 18px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--invert);
+  color: var(--invert-ink);
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease-out-ui), opacity var(--dur-micro) var(--ease-out-ui);
+}
+
+.evaluation-submit:active,
+.evaluation-secondary:active {
+  transform: scale(0.985);
+}
+
+.evaluation-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.evaluation-submit:focus-visible,
+.evaluation-secondary:focus-visible,
+.evaluation-menu-cta:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .evaluation-submit:hover,
+  .evaluation-secondary:hover {
+    opacity: 0.84;
+  }
+}
+
+.evaluation-secondary {
+  min-width: 150px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+}
+
+.evaluation-state {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  padding: 34px 22px;
+  text-align: center;
+  animation: evaluation-enter var(--dur-enter) var(--ease-out-ui) both;
+}
+
+.evaluation-state > svg {
+  color: var(--amber);
+}
+
+.evaluation-success > svg {
+  color: var(--green);
+}
+
+.evaluation-state .evaluation-submit,
+.evaluation-state .evaluation-secondary {
+  margin-top: 7px;
+}
+
+@keyframes evaluation-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 360px) {
+  .evaluation-step { padding: var(--space-sm); }
+  .evaluation-rating { gap: 5px; }
+  .evaluation-rating label span { min-height: 40px; }
+  .evaluation-return > div { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evaluation-state,
+  .evaluation-rating label span,
+  .evaluation-submit,
+  .evaluation-secondary {
+    animation: none;
+    transition: none;
   }
 }

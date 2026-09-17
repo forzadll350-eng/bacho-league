@@ -12,6 +12,7 @@ import { RegisterPage } from './pages/RegisterPage'
 import { AttendeePage } from './pages/AttendeePage'
 import { VotePage } from './pages/VotePage'
 import { PlayersPage } from './pages/PlayersPage'
+import { EvaluationPage } from './pages/EvaluationPage'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <AttendeePage />
         <PlayersPage />
         <VotePage />
+        <EvaluationPage />
       </div>
       <BottomNavigation />
       <NotificationSheet />

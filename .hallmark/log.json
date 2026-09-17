@@ -5,5 +5,12 @@
     "theme": "existing league dark/light",
     "enrichment": "none",
     "brief": "Consent-gated athlete registration and privacy-safe public roster"
+  },
+  {
+    "date": "2026-09-17",
+    "macrostructure": "Narrative Workflow",
+    "theme": "existing league dark/light",
+    "enrichment": "none",
+    "brief": "Dated anonymous satisfaction survey and admin reporting"
   }
 ]

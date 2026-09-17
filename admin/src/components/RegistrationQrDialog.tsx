@@ -1,4 +1,4 @@
-import { Download, ExternalLink, UserRound, UsersRound, X } from 'lucide-react'
+import { ClipboardCheck, Download, ExternalLink, UserRound, UsersRound, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import './RegistrationQrDialog.css'
 
@@ -22,6 +22,14 @@ const QR_ITEMS = [
     url: `${PUBLIC_APP_ORIGIN}/#attendee`,
     fileName: 'bacho-league-staff-registration-qr.png',
     Icon: UsersRound,
+  },
+  {
+    key: 'evaluation',
+    title: 'ประเมินความพึงพอใจ',
+    description: 'เปิดรับวันที่ 21 ก.ย. 2569 เวลา 08:00 น.',
+    url: `${PUBLIC_APP_ORIGIN}/?page=evaluation`,
+    fileName: 'bacho-league-satisfaction-evaluation-qr.png',
+    Icon: ClipboardCheck,
   },
 ] as const
 
@@ -95,8 +103,8 @@ export function RegistrationQrDialog({ onClose }: { onClose: () => void }) {
         <header className="registration-qr-dialog__header">
           <div>
             <p>ระบบแอดมิน</p>
-            <h2 id="registration-qr-title">QR ลงทะเบียน</h2>
-            <span>เปิดให้ผู้สมัครสแกน หรือดาวน์โหลดไปพิมพ์ได้</span>
+            <h2 id="registration-qr-title">QR สำหรับผู้เข้าร่วม</h2>
+            <span>ใช้ลงทะเบียนหรือเปิดแบบประเมิน และดาวน์โหลดไปพิมพ์ได้</span>
           </div>
           <button type="button" aria-label="ปิด" onClick={onClose}>
             <X size={20} />
@@ -133,7 +141,7 @@ export function RegistrationQrDialog({ onClose }: { onClose: () => void }) {
                 <div className="registration-qr-actions">
                   <a className="btn secondary" href={url} target="_blank" rel="noreferrer">
                     <ExternalLink size={16} aria-hidden />
-                    เปิดหน้าลงทะเบียน
+                    เปิดหน้า
                   </a>
                   {image ? (
                     <a className="btn" href={image} download={fileName}>

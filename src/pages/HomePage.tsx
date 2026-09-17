@@ -286,6 +286,18 @@ export function HomePage() {
         </>
       ) : null}
 
+      <button
+        type="button"
+        className="card menu-cta evaluation-menu-cta"
+        onClick={() => setPage('evaluation')}
+      >
+        <div>
+          <div className="menu-title">ประเมินการจัดโครงการ</div>
+          <div className="menu-sub">เปิด 21 ก.ย. 2569 เวลา 08:00 น. · ไม่ต้องกรอกชื่อ</div>
+        </div>
+        <div className="chev">›</div>
+      </button>
+
       <div className="section-head">
         <h2>ภาพรวม</h2>
       </div>

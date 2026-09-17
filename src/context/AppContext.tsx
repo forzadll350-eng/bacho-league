@@ -102,6 +102,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       kind === 'roster'
     ) {
       setPageState('players')
+    } else if (
+      raw === 'evaluation' ||
+      raw === 'survey' ||
+      raw === 'ประเมิน' ||
+      kind === 'evaluation' ||
+      kind === 'survey'
+    ) {
+      setPageState('evaluation')
     }
   }, [])
 

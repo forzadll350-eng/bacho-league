@@ -46,6 +46,14 @@ export function MorePage() {
         <div className="chev">›</div>
       </button>
 
+      <button type="button" className="card menu-cta evaluation-menu-cta" onClick={() => setPage('evaluation')}>
+        <div>
+          <div className="menu-title">ประเมินความพึงพอใจ</div>
+          <div className="menu-sub">เปิด 21 ก.ย. 2569 · 08:00 น. · ไม่ต้องกรอกชื่อ</div>
+        </div>
+        <div className="chev">›</div>
+      </button>
+
       <div className="section-head" style={{ marginTop: 4 }}>
         <h2>ทีมในลีก · 8 อปท.</h2>
       </div>

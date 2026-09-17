@@ -12,7 +12,11 @@ const ITEMS: { id: AppPage; label: string; icon: typeof Home }[] = [
 export function BottomNavigation() {
   const { page, setPage } = useApp()
   const activePage =
-    page === 'register' || page === 'attendee' || page === 'players' || page === 'vote'
+    page === 'register' ||
+    page === 'attendee' ||
+    page === 'players' ||
+    page === 'vote' ||
+    page === 'evaluation'
       ? 'more'
       : page
 

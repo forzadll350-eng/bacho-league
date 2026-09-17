@@ -17,6 +17,7 @@ export type AppPage =
   | 'attendee'
   | 'players'
   | 'vote'
+  | 'evaluation'
 
 export type ThemeMode = 'dark' | 'light'
 

@@ -1,4 +1,4 @@
-import { LogOut, Moon, QrCode, Sun } from 'lucide-react'
+import { BarChart3, LogOut, Moon, QrCode, Sun } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchLeadPoints, fetchMatches, teamName } from '../api/matches'
 import { RegistrationQrDialog } from '../components/RegistrationQrDialog'
@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import type { MatchRow, SportType, StatusFilter, ThemeMode } from '../types'
 import { SPORT_LABELS, STATUS_LABELS } from '../types'
 import { MatchEditorPage } from './MatchEditorPage'
+import { EvaluationResultsPage } from './EvaluationResultsPage'
 
 type GroupFilter = 'all' | 'A' | 'B' | 'knockout'
 
@@ -121,6 +122,7 @@ export function DashboardPage({
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [registrationQrOpen, setRegistrationQrOpen] = useState(false)
+  const [view, setView] = useState<'matches' | 'evaluations'>('matches')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -189,6 +191,20 @@ export function DashboardPage({
     )
   }
 
+  if (view === 'evaluations') {
+    return (
+      <div className="app evaluation-admin-app">
+        <EvaluationResultsPage
+          theme={theme}
+          displayName={displayName}
+          onBack={() => setView('matches')}
+          onToggleTheme={onToggleTheme}
+          onSignOut={() => void signOut()}
+        />
+      </div>
+    )
+  }
+
   const totalVisible = sections.reduce((n, s) => n + s.matches.length, 0)
 
   return (
@@ -199,6 +215,15 @@ export function DashboardPage({
           <span>{displayName}</span>
         </div>
         <div className="top-actions">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setView('evaluations')}
+            aria-label="ดูผลประเมินความพึงพอใจ"
+            title="ผลประเมิน"
+          >
+            <BarChart3 size={17} />
+          </button>
           <button
             type="button"
             className="icon-btn"
