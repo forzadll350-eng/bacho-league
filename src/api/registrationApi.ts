@@ -39,6 +39,12 @@ export const REGISTRATION_DEADLINE = new Date('2026-09-19T17:00:00+07:00')
 export const REGISTRATION_CLOSED_MESSAGE =
   'หมดเวลาลงทะเบียนแล้ว ระบบรับถึงวันที่ 19 ก.ย. 2569 เวลา 17:00 น. เท่านั้น'
 
+/** เปิดรับผู้เข้าร่วมหน้างานตั้งแต่ 21 ก.ย. 2569 เวลา 08:00 (เวลาไทย) */
+export const ATTENDEE_REGISTRATION_OPENS_AT = new Date('2026-09-21T08:00:00+07:00')
+
+export const ATTENDEE_REGISTRATION_WAIT_MESSAGE =
+  'ระบบจะเปิดรับลงทะเบียนผู้เข้าร่วมวันที่ 21 ก.ย. 2569 ตั้งแต่เวลา 08:00 น.'
+
 export function isRegistrationOpen(now: Date = new Date()): boolean {
   return now.getTime() <= REGISTRATION_DEADLINE.getTime()
 }
@@ -46,6 +52,16 @@ export function isRegistrationOpen(now: Date = new Date()): boolean {
 export function assertRegistrationOpen(now: Date = new Date()): void {
   if (!isRegistrationOpen(now)) {
     throw new Error(REGISTRATION_CLOSED_MESSAGE)
+  }
+}
+
+export function isAttendeeRegistrationOpen(now: Date = new Date()): boolean {
+  return now.getTime() >= ATTENDEE_REGISTRATION_OPENS_AT.getTime()
+}
+
+export function assertAttendeeRegistrationOpen(now: Date = new Date()): void {
+  if (!isAttendeeRegistrationOpen(now)) {
+    throw new Error(ATTENDEE_REGISTRATION_WAIT_MESSAGE)
   }
 }
 
@@ -261,7 +277,7 @@ export async function submitAttendeeRegistration(input: AttendeeInput): Promise<
     throw new Error('ยังไม่ได้เชื่อมฐานข้อมูล')
   }
 
-  assertRegistrationOpen()
+  assertAttendeeRegistrationOpen()
 
   const team = TEAM_LIST.find((t) => t.id === input.teamId)
   if (!team) throw new Error('กรุณาเลือก อปท.')
@@ -292,8 +308,8 @@ export async function submitAttendeeRegistration(input: AttendeeInput): Promise<
   })
 
   if (error) {
-    if (error.message?.includes('deadline has passed')) {
-      throw new Error(REGISTRATION_CLOSED_MESSAGE)
+    if (error.message?.includes('attendee registration is not open yet')) {
+      throw new Error(ATTENDEE_REGISTRATION_WAIT_MESSAGE)
     }
     throw new Error(error.message || 'ลงทะเบียนไม่สำเร็จ')
   }

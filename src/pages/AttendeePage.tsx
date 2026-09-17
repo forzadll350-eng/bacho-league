@@ -7,8 +7,8 @@ import {
 } from '../components/RegistrationPosterModal'
 import {
   ATTENDEE_POSITION_OPTIONS,
-  REGISTRATION_CLOSED_MESSAGE,
-  isRegistrationOpen,
+  ATTENDEE_REGISTRATION_WAIT_MESSAGE,
+  isAttendeeRegistrationOpen,
   orgOptionsForSelect,
   submitAttendeeRegistration,
   validateAttendeePhone,
@@ -21,7 +21,7 @@ export function AttendeePage() {
   const { page, setPage } = useApp()
   const { posterOpen, closePoster } = useRegistrationPoster(page === 'attendee')
   const [nowTick, setNowTick] = useState(() => Date.now())
-  const registrationOpen = isRegistrationOpen(new Date(nowTick))
+  const registrationOpen = isAttendeeRegistrationOpen(new Date(nowTick))
   const orgs = orgOptionsForSelect()
 
   const [teamId, setTeamId] = useState('')
@@ -42,7 +42,7 @@ export function AttendeePage() {
   useEffect(() => {
     if (page !== 'attendee') return
     if (registrationOpen) return
-    setAlert({ kind: 'closed', message: REGISTRATION_CLOSED_MESSAGE })
+    setAlert({ kind: 'closed', message: ATTENDEE_REGISTRATION_WAIT_MESSAGE })
   }, [page, registrationOpen])
 
   function showErr(message: string) {
@@ -59,8 +59,8 @@ export function AttendeePage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!isRegistrationOpen()) {
-      setAlert({ kind: 'closed', message: REGISTRATION_CLOSED_MESSAGE })
+    if (!isAttendeeRegistrationOpen()) {
+      setAlert({ kind: 'closed', message: ATTENDEE_REGISTRATION_WAIT_MESSAGE })
       return
     }
     if (!teamId) {
@@ -106,7 +106,7 @@ export function AttendeePage() {
       setAlert({ kind: 'ok', message: 'ลงทะเบียนผู้เข้าร่วมสำเร็จ' })
     } catch (ex: unknown) {
       const msg = ex instanceof Error ? ex.message : 'ลงทะเบียนไม่สำเร็จ'
-      if (msg === REGISTRATION_CLOSED_MESSAGE) {
+      if (msg === ATTENDEE_REGISTRATION_WAIT_MESSAGE) {
         setAlert({ kind: 'closed', message: msg })
       } else {
         showErr(msg)
@@ -118,23 +118,23 @@ export function AttendeePage() {
 
   return (
     <section className={`page${page === 'attendee' ? ' active' : ''}`} id="page-attendee">
-      <RegistrationPosterModal open={posterOpen} onClose={closePoster} />
+      <RegistrationPosterModal open={posterOpen && registrationOpen} onClose={closePoster} />
 
       <div className="section-head">
         <div>
           <h1>ลงทะเบียนผู้เข้าร่วม</h1>
           <p>
             {registrationOpen
-              ? 'งานฟุตซอลลีก 21 ก.ย. 2569 · รับถึง 19 ก.ย. 2569 เวลา 17:00 น.'
-              : 'ปิดรับลงทะเบียนแล้ว · วันแข่ง 21 ก.ย. 2569'}
+              ? 'เปิดรับลงทะเบียนผู้เข้าร่วมแล้ว · งานวันที่ 21 ก.ย. 2569'
+              : 'เปิดรับวันที่ 21 ก.ย. 2569 เวลา 08:00 น.'}
           </p>
         </div>
       </div>
 
       {!registrationOpen ? (
         <div className="card reg-closed">
-          <h2>หมดเวลาลงทะเบียน</h2>
-          <p>{REGISTRATION_CLOSED_MESSAGE}</p>
+          <h2>ยังไม่เปิดรับลงทะเบียน</h2>
+          <p>{ATTENDEE_REGISTRATION_WAIT_MESSAGE}</p>
           <button type="button" className="reg-submit" onClick={() => setPage('home')}>
             กลับหน้าหลัก
           </button>
@@ -239,7 +239,7 @@ export function AttendeePage() {
             </button>
           </form>
 
-          <p className="reg-note">ปิดรับลงทะเบียน 19 ก.ย. 2569 เวลา 17:00 น.</p>
+          <p className="reg-note">เปิดรับลงทะเบียนตั้งแต่ 21 ก.ย. 2569 เวลา 08:00 น.</p>
         </>
       )}
 
@@ -263,7 +263,7 @@ export function AttendeePage() {
                   {alert.kind === 'ok'
                     ? 'สำเร็จ'
                     : alert.kind === 'closed'
-                      ? 'หมดเวลาลงทะเบียน'
+                      ? 'ยังไม่เปิดรับลงทะเบียน'
                       : 'แจ้งเตือน'}
                 </h2>
                 <p id="att-alert-msg">{alert.message}</p>
