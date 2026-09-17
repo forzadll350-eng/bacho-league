@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ShieldCheck, Shirt, UsersRound } from 'lucide-react'
 import {
   loadPublicPlayerRoster,
+  POSITION_OPTIONS,
   type PublicRosterPlayer,
 } from '../api/registrationApi'
 import { useApp } from '../context/AppContext'
@@ -129,7 +130,13 @@ export function PlayersPage() {
                   {teamPlayers.map((player, index) => (
                     <li key={player.id}>
                       <span className="roster-number">{String(index + 1).padStart(2, '0')}</span>
-                      <b>{player.fullName}</b>
+                      <div className="roster-person">
+                        <b>{player.fullName}</b>
+                        <span>
+                          {POSITION_OPTIONS.find((option) => option.value === player.position)
+                            ?.label ?? player.position}
+                        </span>
+                      </div>
                       {sport === 'football' && player.jerseyNumber ? (
                         <span className="jersey-pill">
                           <Shirt size={13} /> {player.jerseyNumber}
@@ -148,7 +155,7 @@ export function PlayersPage() {
 
       <div className="roster-privacy">
         <ShieldCheck size={16} />
-        <p>หน้านี้ไม่แสดงอายุ ตำแหน่ง เบอร์โทร หรือรูปถ่ายของนักกีฬา</p>
+        <p>แสดงชื่อ อปท. ตำแหน่ง และเบอร์เสื้อฟุตซอล โดยไม่แสดงอายุ เบอร์โทร หรือรูปถ่าย</p>
       </div>
     </section>
   )

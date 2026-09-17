@@ -249,6 +249,7 @@ export type PublicRosterPlayer = {
   sport: SportType
   teamId: string
   fullName: string
+  position: PlayerPosition
   jerseyNumber?: string
 }
 
@@ -257,7 +258,7 @@ export async function loadPublicPlayerRoster(sport: SportType): Promise<PublicRo
 
   const { data, error } = await supabase
     .from('public_player_roster')
-    .select('id, sport, team_id, full_name, jersey_number')
+    .select('id, sport, team_id, full_name, position, jersey_number')
     .eq('sport', sport)
     .order('full_name', { ascending: true })
 
@@ -268,6 +269,7 @@ export async function loadPublicPlayerRoster(sport: SportType): Promise<PublicRo
     sport: row.sport as SportType,
     teamId: row.team_id,
     fullName: row.full_name,
+    position: row.position as PlayerPosition,
     jerseyNumber: row.jersey_number ?? undefined,
   }))
 }

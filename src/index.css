@@ -2857,10 +2857,22 @@ body {
   border-bottom: 0;
 }
 
-.roster-list b {
+.roster-person {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.roster-person b {
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 11px;
+}
+
+.roster-person span {
+  color: var(--muted);
+  font-size: 9px;
 }
 
 .roster-number {
