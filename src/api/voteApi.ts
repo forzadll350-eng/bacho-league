@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import type { SportType } from '../types/sports'
 
 const VOTER_KEY = 'bacho-vote-key'
 
@@ -18,27 +19,30 @@ export function getVoterKey(): string {
   }
 }
 
-export function hasVotedLocally(): boolean {
+export function hasVotedLocally(sport: SportType): boolean {
   try {
-    return Boolean(localStorage.getItem('bacho-voted-football'))
+    return Boolean(localStorage.getItem(`bacho-voted-${sport}`))
   } catch {
     return false
   }
 }
 
-export function markVotedLocally(registrationId: string) {
+export function markVotedLocally(sport: SportType, registrationId: string) {
   try {
-    localStorage.setItem('bacho-voted-football', registrationId)
+    localStorage.setItem(`bacho-voted-${sport}`, registrationId)
   } catch {
     /* ignore */
   }
 }
 
-export async function castFavoriteVote(registrationId: string): Promise<void> {
+export async function castFavoriteVote(
+  sport: SportType,
+  registrationId: string,
+): Promise<void> {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('ยังไม่ได้เชื่อมฐานข้อมูล')
   }
-  if (hasVotedLocally()) {
+  if (hasVotedLocally(sport)) {
     throw new Error('คุณโหวตไปแล้ว')
   }
   const voter_key = getVoterKey()
@@ -48,7 +52,7 @@ export async function castFavoriteVote(registrationId: string): Promise<void> {
   })
   if (error) {
     if (error.code === '23505') {
-      markVotedLocally(registrationId)
+      markVotedLocally(sport, registrationId)
       throw new Error('คุณโหวตไปแล้ว')
     }
     if (error.code === 'PGRST' || error.message.includes('โหวตครบ')) {
@@ -56,5 +60,5 @@ export async function castFavoriteVote(registrationId: string): Promise<void> {
     }
     throw error
   }
-  markVotedLocally(registrationId)
+  markVotedLocally(sport, registrationId)
 }

@@ -480,7 +480,7 @@ function mergeBundle(
     stats: [],
     lineup: [],
     topScorers,
-    voteCandidates: sport === 'football' ? voteCandidates : [],
+    voteCandidates,
     quick: [
       [String(done), 'จบแล้ว'],
       [String(scheduled), 'รอแข่งขัน'],
@@ -517,9 +517,7 @@ async function fetchFromSupabase(sport: SportType): Promise<SportBundle> {
         .from('public_players')
         .select('id, sport, team_id, full_name, jersey_number, photo_url')
         .eq('sport', sport),
-      sport === 'football'
-        ? supabase.from('favorite_vote_totals').select('registration_id, votes')
-        : Promise.resolve({ data: [] as DbVote[], error: null }),
+      supabase.from('favorite_vote_totals').select('registration_id, votes'),
     ])
 
   if (teamsRes.error) throw teamsRes.error
@@ -578,7 +576,7 @@ async function fetchFromSupabase(sport: SportType): Promise<SportBundle> {
   }
 
   const voteCandidates: VoteCandidate[] = regs
-    .filter((r) => r.sport === 'football')
+    .filter((r) => r.sport === sport)
     .map((r) => ({
       id: r.id,
       fullName: r.full_name,
@@ -625,6 +623,11 @@ export function subscribeSportUpdates(
     )
     .on('postgres_changes', { event: '*', schema: 'public', table: 'match_goals' }, () =>
       onChange(),
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'favorite_votes', filter: `sport=eq.${sport}` },
+      () => onChange(),
     )
     .subscribe()
 

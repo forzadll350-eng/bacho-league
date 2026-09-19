@@ -264,15 +264,16 @@ export function HomePage() {
             )}
           </div>
 
-          <button type="button" className="card menu-cta vote-cta" onClick={() => setPage('vote')}>
-            <div>
-              <div className="menu-title">โหวตนักกีฬาขวัญใจ อำเภอบาเจาะ</div>
-              <div className="menu-sub">เลือกได้ 1 คน · จากรายชื่อที่ลงทะเบียนฟุตซอล</div>
-            </div>
-            <div className="chev">›</div>
-          </button>
         </>
       ) : null}
+
+      <button type="button" className="card menu-cta vote-cta" onClick={() => setPage('vote')}>
+        <div>
+          <div className="menu-title">โหวตนักกีฬาขวัญใจ อำเภอบาเจาะ</div>
+          <div className="menu-sub">ฟุตซอลและวอลเลย์บอล · เลือกได้ 1 คนต่อกีฬา</div>
+        </div>
+        <div className="chev">›</div>
+      </button>
 
       {activeView !== 'knockout' ? (
         <>

@@ -1,24 +1,73 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { castFavoriteVote, hasVotedLocally } from '../api/voteApi'
+import { TEAM_LIST } from '../data/teams'
+import type { SportType, VoteCandidate } from '../types/sports'
+
+const SPORT_OPTIONS: { id: SportType; label: string }[] = [
+  { id: 'football', label: 'ฟุตซอล' },
+  { id: 'volleyball', label: 'วอลเลย์บอล' },
+]
+
+type CandidateGroup = {
+  teamId: string
+  teamName: string
+  crestUrl?: string
+  candidates: VoteCandidate[]
+}
 
 export function VotePage() {
-  const { page, setPage, data, sport, refresh } = useApp()
+  const { page, setPage, data, sport, setSport, refresh } = useApp()
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
-  const [voted, setVoted] = useState(() => hasVotedLocally())
+  const [message, setMessage] = useState<{ sport: SportType; text: string } | null>(null)
+  const [votedBySport, setVotedBySport] = useState<Record<SportType, boolean>>(() => ({
+    football: hasVotedLocally('football'),
+    volleyball: hasVotedLocally('volleyball'),
+  }))
+  const voted = votedBySport[sport]
+
+  const groups = useMemo<CandidateGroup[]>(() => {
+    const byTeam = new Map<string, VoteCandidate[]>()
+    for (const candidate of data.voteCandidates) {
+      const list = byTeam.get(candidate.teamId) ?? []
+      list.push(candidate)
+      byTeam.set(candidate.teamId, list)
+    }
+
+    const known = TEAM_LIST.flatMap((team) => {
+      const candidates = byTeam.get(team.id)
+      if (!candidates?.length) return []
+      byTeam.delete(team.id)
+      return [{ teamId: team.id, teamName: team.nameTh, crestUrl: team.crestUrl, candidates }]
+    })
+
+    const extra = [...byTeam.entries()]
+      .map(([teamId, candidates]) => ({
+        teamId,
+        teamName: candidates[0]?.teamName ?? teamId,
+        candidates,
+      }))
+      .sort((a, b) => a.teamName.localeCompare(b.teamName, 'th'))
+
+    return [...known, ...extra]
+  }, [data.voteCandidates])
 
   async function vote(id: string) {
     setBusyId(id)
     setMessage(null)
     try {
-      await castFavoriteVote(id)
-      setVoted(true)
-      setMessage('โหวตเรียบร้อย ขอบคุณครับ')
+      await castFavoriteVote(sport, id)
+      setVotedBySport((current) => ({ ...current, [sport]: true }))
+      setMessage({ sport, text: 'โหวตเรียบร้อย ขอบคุณครับ' })
       refresh()
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : 'โหวตไม่สำเร็จ')
-      if (err instanceof Error && err.message.includes('โหวตไปแล้ว')) setVoted(true)
+      setMessage({
+        sport,
+        text: err instanceof Error ? err.message : 'โหวตไม่สำเร็จ',
+      })
+      if (err instanceof Error && err.message.includes('โหวตไปแล้ว')) {
+        setVotedBySport((current) => ({ ...current, [sport]: true }))
+      }
     } finally {
       setBusyId(null)
     }
@@ -29,53 +78,80 @@ export function VotePage() {
       <div className="section-head">
         <div>
           <h1>นักกีฬาขวัญใจ</h1>
-          <p>อำเภอบาเจาะ · โหวตได้ 1 คน</p>
+          <p>อำเภอบาเจาะ · โหวตได้ 1 คนต่อชนิดกีฬา</p>
         </div>
         <button type="button" className="text-btn" onClick={() => setPage('home')}>
           กลับ
         </button>
       </div>
 
-      {sport !== 'football' ? (
+      <div className="vote-sport-switch" role="tablist" aria-label="เลือกประเภทนักกีฬาขวัญใจ">
+        {SPORT_OPTIONS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            role="tab"
+            aria-selected={sport === option.id}
+            className={sport === option.id ? 'active' : ''}
+            onClick={() => {
+              setMessage(null)
+              setSport(option.id)
+            }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {data.voteCandidates.length === 0 ? (
         <div className="card" style={{ padding: 16, fontSize: 13, color: 'var(--muted)' }}>
-          โหวตเปิดเฉพาะฟุตซอล — สลับกีฬาเป็นฟุตซอลด้านบน
-        </div>
-      ) : data.voteCandidates.length === 0 ? (
-        <div className="card" style={{ padding: 16, fontSize: 13, color: 'var(--muted)' }}>
-          ยังไม่มีรายชื่อลงทะเบียนให้โหวต
+          ยังไม่มีรายชื่อลงทะเบียน{sport === 'football' ? 'ฟุตซอล' : 'วอลเลย์บอล'}ให้โหวต
         </div>
       ) : (
-        <div className="vote-list">
-          {data.voteCandidates.map((c) => (
-            <div className="card vote-row" key={c.id}>
-              {c.photoUrl ? (
-                <img src={c.photoUrl} alt="" className="vote-photo" />
-              ) : (
-                <div className="vote-photo placeholder">
-                  {c.jerseyNumber ? `#${c.jerseyNumber}` : '?'}
+        <div className="vote-groups">
+          {groups.map((group) => (
+            <section className="vote-org" key={group.teamId}>
+              <div className="vote-org-head">
+                {group.crestUrl ? <img src={group.crestUrl} alt="" /> : null}
+                <div>
+                  <h2>{group.teamName}</h2>
+                  <p>{group.candidates.length} คน</p>
                 </div>
-              )}
-              <div className="vote-meta">
-                <b>{c.fullName}</b>
-                <p>
-                  {c.teamName}
-                  {c.jerseyNumber ? ` · เบอร์ ${c.jerseyNumber}` : ''} · {c.votes} โหวต
-                </p>
               </div>
-              <button
-                type="button"
-                className="vote-btn"
-                disabled={voted || busyId === c.id}
-                onClick={() => void vote(c.id)}
-              >
-                {voted ? 'โหวตแล้ว' : busyId === c.id ? '…' : 'โหวต'}
-              </button>
-            </div>
+              <div className="vote-list">
+                {group.candidates.map((candidate) => (
+                  <div className="card vote-row" key={candidate.id}>
+                    {candidate.photoUrl ? (
+                      <img src={candidate.photoUrl} alt="" className="vote-photo" />
+                    ) : (
+                      <div className="vote-photo placeholder">
+                        {candidate.jerseyNumber ? `#${candidate.jerseyNumber}` : '?'}
+                      </div>
+                    )}
+                    <div className="vote-meta">
+                      <b>{candidate.fullName}</b>
+                      <p>
+                        {candidate.jerseyNumber ? `เบอร์ ${candidate.jerseyNumber} · ` : ''}
+                        {candidate.votes} โหวต
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="vote-btn"
+                      disabled={voted || busyId === candidate.id}
+                      onClick={() => void vote(candidate.id)}
+                    >
+                      {voted ? 'โหวตแล้ว' : busyId === candidate.id ? '…' : 'โหวต'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
 
-      {message ? <p className="vote-msg">{message}</p> : null}
+      {message?.sport === sport ? <p className="vote-msg">{message.text}</p> : null}
     </section>
   )
 }

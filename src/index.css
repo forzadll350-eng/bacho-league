@@ -3238,6 +3238,67 @@ body {
   margin-top: 10px;
 }
 
+.vote-sport-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.vote-sport-switch button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.vote-sport-switch button.active {
+  background: var(--invert);
+  color: var(--invert-ink);
+}
+
+.vote-groups {
+  display: grid;
+  gap: 22px;
+}
+
+.vote-org {
+  min-width: 0;
+}
+
+.vote-org-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 4px 10px;
+}
+
+.vote-org-head img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.vote-org-head h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.vote-org-head p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .vote-list {
   display: grid;
   gap: 8px;
