@@ -4,6 +4,15 @@ import { useApp } from '../context/AppContext'
 import { StandingsTable } from '../components/StandingsTable'
 import { MatchCard } from '../components/MatchCard'
 import { compareMatchOrder } from '../lib/matchOrder'
+import type { Match } from '../types/sports'
+
+function knockoutPair(matches: Match[], id: string, pending: string): string {
+  const match = matches.find((item) => item.id === id)
+  if (!match || match.homeTeam.id.startsWith('slot-') || match.awayTeam.id.startsWith('slot-')) {
+    return pending
+  }
+  return `${match.homeTeam.nameTh} พบ ${match.awayTeam.nameTh}`
+}
 
 export function StandingsPage() {
   const { page, data, sport } = useApp()
@@ -58,27 +67,27 @@ export function StandingsPage() {
           {isVolleyball ? (
             <div className="knockout-step">
               <span className="knockout-label">นัดชิง</span>
-              <p>ที่ 1 สาย A พบ ที่ 1 สาย B · ยังไม่รู้ทีมจนกว่าจบสาย</p>
+              <p>{knockoutPair(knockout, 'vb-final', 'ที่ 1 สาย A พบ ที่ 1 สาย B · รอยืนยันทีม')}</p>
             </div>
           ) : (
             <>
               <div className="knockout-step">
                 <span className="knockout-label">รองฯ</span>
-                <p>A1 พบ B2 · A2 พบ B1 · ยังไม่รู้ทีมจนกว่าจบสาย</p>
+                <p>{knockoutPair(knockout, 'fb-sf-1', 'A1 พบ B2 · รอยืนยันทีม')} · {knockoutPair(knockout, 'fb-sf-2', 'B1 พบ A2 · รอยืนยันทีม')}</p>
               </div>
               <div className="knockout-arrow" aria-hidden>
                 →
               </div>
               <div className="knockout-step">
                 <span className="knockout-label">ชิงอันดับ 3</span>
-                <p>ผู้แพ้รองฯ 1 พบ ผู้แพ้รองฯ 2</p>
+                <p>{knockoutPair(knockout, 'fb-third', 'ผู้แพ้รองฯ 1 พบ ผู้แพ้รองฯ 2 · รอยืนยันทีม')}</p>
               </div>
               <div className="knockout-arrow" aria-hidden>
                 →
               </div>
               <div className="knockout-step">
                 <span className="knockout-label">นัดชิง</span>
-                <p>ผู้ชนะรองฯ พบกัน</p>
+                <p>{knockoutPair(knockout, 'fb-final', 'ผู้ชนะรองฯ พบกัน · รอยืนยันทีม')}</p>
               </div>
             </>
           )}

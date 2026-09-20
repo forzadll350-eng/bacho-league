@@ -115,6 +115,10 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
   const [toast, setToast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [clockNow, setClockNow] = useState(() => Date.now())
+  const knockoutTeamsPending = Boolean(
+    match && match.stage !== 'group' &&
+    (match.home_team_id.startsWith('slot-') || match.away_team_id.startsWith('slot-')),
+  )
 
   useEffect(() => {
     const id = window.setInterval(() => setClockNow(Date.now()), 1000)
@@ -515,6 +519,12 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
 
   async function save() {
     if (!match) return
+    if (knockoutTeamsPending &&
+        (status === 'live' || status === 'halftime' || status === 'finished' ||
+         homeScore > 0 || awayScore > 0 || homePoints > 0 || awayPoints > 0)) {
+      setError('กรุณายืนยันทีมจริงในเมนูตารางคะแนนและจัดคู่น็อกเอาต์ก่อนเริ่มแข่ง')
+      return
+    }
     if (
       match.sport === 'football' &&
       (goalSummary.homeTracked > homeScore || goalSummary.awayTracked > awayScore)
@@ -638,6 +648,13 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
         </h2>
       </div>
 
+      {knockoutTeamsPending ? (
+        <div className="tournament-warning" role="note">
+          คู่นี้ยังเป็นทีมรอผล · กรุณาเลือกทีมจริงในเมนู “ตารางคะแนนและจัดคู่น็อกเอาต์”
+          ก่อนกรอกผลการแข่งขัน
+        </div>
+      ) : null}
+
       <div className="editor-panel">
         <div className="field">
           <label htmlFor="match-order">
@@ -702,10 +719,10 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
             <div className="name">{teamName(match.home)}</div>
             <div className="big">{homeScore}</div>
             <div className="score-btns">
-              <button type="button" onClick={() => bumpHome(-1)}>
+              <button type="button" onClick={() => bumpHome(-1)} disabled={knockoutTeamsPending}>
                 <Minus size={18} />
               </button>
-              <button type="button" onClick={() => bumpHome(1)}>
+              <button type="button" onClick={() => bumpHome(1)} disabled={knockoutTeamsPending}>
                 <Plus size={18} />
               </button>
             </div>
@@ -715,10 +732,10 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
             <div className="name">{teamName(match.away)}</div>
             <div className="big">{awayScore}</div>
             <div className="score-btns">
-              <button type="button" onClick={() => bumpAway(-1)}>
+              <button type="button" onClick={() => bumpAway(-1)} disabled={knockoutTeamsPending}>
                 <Minus size={18} />
               </button>
-              <button type="button" onClick={() => bumpAway(1)}>
+              <button type="button" onClick={() => bumpAway(1)} disabled={knockoutTeamsPending}>
                 <Plus size={18} />
               </button>
             </div>
@@ -766,7 +783,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                   type="button"
                   className={`set-picker-btn${active ? ' active' : ''}`}
                   onClick={() => selectPointsSet(n)}
-                  disabled={saving}
+                  disabled={saving || knockoutTeamsPending}
                 >
                   <span className="set-picker-label">เซต {n}</span>
                   <span className="set-picker-score">
@@ -784,7 +801,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => bumpHomePoints(-1)}
-                  disabled={saving}
+                  disabled={saving || knockoutTeamsPending}
                   aria-label={`ลดแต้ม ${teamName(match.home)}`}
                 >
                   <Minus size={16} />
@@ -792,7 +809,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => bumpHomePoints(1)}
-                  disabled={saving}
+                  disabled={saving || knockoutTeamsPending}
                   aria-label={`เพิ่มแต้ม ${teamName(match.home)}`}
                 >
                   <Plus size={16} />
@@ -807,7 +824,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => bumpAwayPoints(-1)}
-                  disabled={saving}
+                  disabled={saving || knockoutTeamsPending}
                   aria-label={`ลดแต้ม ${teamName(match.away)}`}
                 >
                   <Minus size={16} />
@@ -815,7 +832,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => bumpAwayPoints(1)}
-                  disabled={saving}
+                  disabled={saving || knockoutTeamsPending}
                   aria-label={`เพิ่มแต้ม ${teamName(match.away)}`}
                 >
                   <Plus size={16} />
@@ -831,7 +848,7 @@ export function MatchEditorPage({ matchId, onBack }: Props) {
           <label htmlFor="status">สถานะ</label>
           <select id="status" value={status} onChange={(e) => changeStatus(e.target.value as MatchStatus)}>
             {STATUSES.map((s) => (
-              <option key={s} value={s}>
+              <option key={s} value={s} disabled={knockoutTeamsPending && (s === 'live' || s === 'halftime' || s === 'finished')}>
                 {STATUS_LABELS[s]}
               </option>
             ))}

@@ -1,4 +1,4 @@
-import { BarChart3, LogOut, Moon, QrCode, Sun } from 'lucide-react'
+import { BarChart3, LogOut, Moon, QrCode, Sun, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchLeadPoints, fetchMatches, teamName } from '../api/matches'
 import { RegistrationQrDialog } from '../components/RegistrationQrDialog'
@@ -7,6 +7,7 @@ import type { MatchRow, SportType, StatusFilter, ThemeMode } from '../types'
 import { SPORT_LABELS, STATUS_LABELS } from '../types'
 import { MatchEditorPage } from './MatchEditorPage'
 import { EvaluationResultsPage } from './EvaluationResultsPage'
+import { TournamentSetupPage } from './TournamentSetupPage'
 
 type GroupFilter = 'all' | 'A' | 'B' | 'knockout'
 
@@ -122,7 +123,7 @@ export function DashboardPage({
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [registrationQrOpen, setRegistrationQrOpen] = useState(false)
-  const [view, setView] = useState<'matches' | 'evaluations'>('matches')
+  const [view, setView] = useState<'matches' | 'evaluations' | 'tournament'>('matches')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -205,6 +206,18 @@ export function DashboardPage({
     )
   }
 
+  if (view === 'tournament') {
+    return (
+      <TournamentSetupPage
+        initialSport={sport}
+        onBack={() => {
+          setView('matches')
+          void load()
+        }}
+      />
+    )
+  }
+
   const totalVisible = sections.reduce((n, s) => n + s.matches.length, 0)
 
   return (
@@ -265,6 +278,15 @@ export function DashboardPage({
           </button>
         ))}
       </div>
+
+      <button type="button" className="tournament-entry" onClick={() => setView('tournament')}>
+        <Trophy size={20} strokeWidth={1.8} aria-hidden />
+        <span>
+          <strong>ตารางคะแนนและจัดคู่น็อกเอาต์</strong>
+          <small>ดูอันดับ · ยืนยันทีมจริงหลังจบรอบแบ่งสาย</small>
+        </span>
+        <span className="tournament-entry-arrow" aria-hidden>›</span>
+      </button>
 
       <div className="group-toggle" role="tablist" aria-label="เลือกสาย">
         {(

@@ -170,53 +170,18 @@ function teamById(map: Map<string, Team>, id: string): Team {
   }
 }
 
-/** ทีมปลอมที่เคยใส่ในรอบรอง/ชิง — แสดงเป็น slot จนกว่า DB จะอัปเดต / แอดมินใส่ทีมจริง */
-const LEGACY_KNOCKOUT_PLACEHOLDERS: Record<string, [string, string]> = {
-  'fb-sf-1': ['tonsai', 'palukasamoh'],
-  'fb-sf-2': ['barehtai', 'bacho-municipal'],
-  'fb-final': ['tonsai', 'barehtai'],
-  'vb-final': ['bacho-sao', 'kayoh-mati'],
-}
-
-const KNOCKOUT_SLOTS: Record<string, [string, string]> = {
-  'fb-sf-1': ['slot-a1', 'slot-b2'],
-  'fb-sf-2': ['slot-b1', 'slot-a2'],
-  'fb-third': ['slot-sf1-loser', 'slot-sf2-loser'],
-  'fb-final': ['slot-sf1', 'slot-sf2'],
-  'vb-final': ['slot-a1', 'slot-b1'],
-}
-
-function resolveKnockoutTeamIds(row: DbMatch): { homeId: string; awayId: string } {
-  const slots = KNOCKOUT_SLOTS[row.id]
-  if (!slots) return { homeId: row.home_team_id, awayId: row.away_team_id }
-  if (row.home_team_id.startsWith('slot-') || row.away_team_id.startsWith('slot-')) {
-    return { homeId: row.home_team_id, awayId: row.away_team_id }
-  }
-  const legacy = LEGACY_KNOCKOUT_PLACEHOLDERS[row.id]
-  if (
-    legacy &&
-    row.home_team_id === legacy[0] &&
-    row.away_team_id === legacy[1] &&
-    row.status === 'scheduled'
-  ) {
-    return { homeId: slots[0], awayId: slots[1] }
-  }
-  return { homeId: row.home_team_id, awayId: row.away_team_id }
-}
-
 function mapMatch(
   row: DbMatch,
   teams: Map<string, Team>,
   goalsByMatch: Map<string, MatchGoal[]>,
 ): Match {
-  const { homeId, awayId } = resolveKnockoutTeamIds(row)
   const base: Match = {
     id: row.id,
     sport: row.sport,
     competitionId: row.competition_id,
     seasonId: row.season_id,
-    homeTeam: teamById(teams, homeId),
-    awayTeam: teamById(teams, awayId),
+    homeTeam: teamById(teams, row.home_team_id),
+    awayTeam: teamById(teams, row.away_team_id),
     scheduledAt: row.scheduled_at,
     updatedAt: row.updated_at,
     startedAt: row.started_at ?? undefined,
