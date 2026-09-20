@@ -37,11 +37,8 @@ export function validateFutsalAge(position: PlayerPosition, age: number): string
   return null
 }
 
-/** ปิดรับลงทะเบียนนักกีฬา/ผู้เข้าร่วม หลัง 19 ก.ย. 2569 เวลา 17:00 (เวลาไทย) */
-export const REGISTRATION_DEADLINE = new Date('2026-09-19T17:00:00+07:00')
-
 export const REGISTRATION_CLOSED_MESSAGE =
-  'หมดเวลาลงทะเบียนแล้ว ระบบรับถึงวันที่ 19 ก.ย. 2569 เวลา 17:00 น. เท่านั้น'
+  'ขณะนี้ปิดรับลงทะเบียนนักกีฬาแล้ว กรุณาติดต่อผู้จัดงาน'
 
 /** เปิดรับผู้เข้าร่วมหน้างานตั้งแต่ 21 ก.ย. 2569 เวลา 08:00 (เวลาไทย) */
 export const ATTENDEE_REGISTRATION_OPENS_AT = new Date('2026-09-21T08:00:00+07:00')
@@ -49,12 +46,20 @@ export const ATTENDEE_REGISTRATION_OPENS_AT = new Date('2026-09-21T08:00:00+07:0
 export const ATTENDEE_REGISTRATION_WAIT_MESSAGE =
   'ระบบจะเปิดรับลงทะเบียนผู้เข้าร่วมวันที่ 21 ก.ย. 2569 ตั้งแต่เวลา 08:00 น.'
 
-export function isRegistrationOpen(now: Date = new Date()): boolean {
-  return now.getTime() <= REGISTRATION_DEADLINE.getTime()
+/** สถานะรับนักกีฬาควบคุมจาก Supabase; หากอ่านไม่ได้ให้ปิดฟอร์มไว้ก่อน */
+export async function isRegistrationOpen(): Promise<boolean> {
+  if (!supabase) throw new Error('ยังไม่ได้เชื่อมฐานข้อมูล')
+  const { data, error } = await supabase
+    .from('app_meta')
+    .select('value')
+    .eq('key', 'athlete_registration_open')
+    .single()
+  if (error) throw new Error('ตรวจสอบสถานะลงทะเบียนไม่สำเร็จ กรุณาลองใหม่')
+  return data.value === 'true'
 }
 
-export function assertRegistrationOpen(now: Date = new Date()): void {
-  if (!isRegistrationOpen(now)) {
+export async function assertRegistrationOpen(): Promise<void> {
+  if (!(await isRegistrationOpen())) {
     throw new Error(REGISTRATION_CLOSED_MESSAGE)
   }
 }
@@ -116,6 +121,7 @@ export type UploadedPlayerPhoto = { publicUrl: string; path: string }
 export async function uploadPlayerPhoto(file: File, teamId: string): Promise<UploadedPlayerPhoto> {
   if (!supabase) throw new Error('ยังไม่ได้เชื่อม Supabase')
   if (file.size > 2 * 1024 * 1024) throw new Error('รูปต้องไม่เกิน 2 MB')
+  await assertRegistrationOpen()
 
   const extByMime: Record<string, string> = {
     'image/jpeg': 'jpg',
@@ -159,7 +165,7 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
     throw new Error('ยังไม่ได้เชื่อมฐานข้อมูล')
   }
 
-  assertRegistrationOpen()
+  await assertRegistrationOpen()
 
   const jersey =
     input.jerseyNumber != null && input.jerseyNumber.trim()
@@ -206,7 +212,10 @@ export async function submitRegistration(input: RegistrationInput): Promise<void
           : 'เบอร์เสื้อนี้มีในระบบแล้ว',
       )
     }
-    if (error.message?.includes('deadline has passed')) {
+    if (
+      error.message?.includes('athlete registration is closed') ||
+      error.message?.includes('deadline has passed')
+    ) {
       throw new Error(REGISTRATION_CLOSED_MESSAGE)
     }
     if (error.message?.includes('privacy acknowledgement is required')) {

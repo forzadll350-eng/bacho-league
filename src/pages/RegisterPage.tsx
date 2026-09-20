@@ -27,8 +27,12 @@ export function RegisterPage() {
   const { posterOpen, closePoster } = useRegistrationPoster(page === 'register')
   const [teamId, setTeamId] = useState('')
   const teams = useMemo(() => teamsForSelect(sport), [sport])
-  const [nowTick, setNowTick] = useState(() => Date.now())
-  const registrationOpen = isRegistrationOpen(new Date(nowTick))
+  const [registrationStatus, setRegistrationStatus] = useState<
+    'loading' | 'open' | 'closed' | 'error'
+  >('loading')
+  const [statusRefresh, setStatusRefresh] = useState(0)
+  const registrationOpen = registrationStatus === 'open'
+  const [alert, setAlert] = useState<RegAlert | null>(null)
 
   useEffect(() => {
     if (!teams.find((t) => t.id === teamId)) {
@@ -37,9 +41,28 @@ export function RegisterPage() {
   }, [teams, teamId])
 
   useEffect(() => {
-    const id = window.setInterval(() => setNowTick(Date.now()), 30_000)
-    return () => window.clearInterval(id)
-  }, [])
+    if (page !== 'register') return
+    let active = true
+    async function refresh() {
+      try {
+        const open = await isRegistrationOpen()
+        if (active) {
+          setRegistrationStatus(open ? 'open' : 'closed')
+          if (open) setAlert((current) => (current?.kind === 'closed' ? null : current))
+        }
+      } catch {
+        if (active) setRegistrationStatus('error')
+      }
+    }
+    void refresh()
+    const id = window.setInterval(() => void refresh(), 30_000)
+    window.addEventListener('focus', refresh)
+    return () => {
+      active = false
+      window.clearInterval(id)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [page, statusRefresh])
 
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState<PlayerPosition>('general')
@@ -48,7 +71,6 @@ export function RegisterPage() {
   const [photo, setPhoto] = useState<File | null>(null)
   const [count, setCount] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
-  const [alert, setAlert] = useState<RegAlert | null>(null)
   const [consentOpen, setConsentOpen] = useState(false)
 
   const isFutsal = sport === 'football'
@@ -70,12 +92,6 @@ export function RegisterPage() {
     }
   }, [sport, teamId, registrationOpen])
 
-  useEffect(() => {
-    if (page !== 'register') return
-    if (registrationOpen) return
-    setAlert({ kind: 'closed', message: REGISTRATION_CLOSED_MESSAGE })
-  }, [page, registrationOpen])
-
   function showErr(message: string) {
     setAlert({ kind: 'err', message })
   }
@@ -90,7 +106,11 @@ export function RegisterPage() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!isRegistrationOpen()) {
+    if (!registrationOpen) {
+      if (registrationStatus === 'error') {
+        showErr('ตรวจสอบสถานะลงทะเบียนไม่สำเร็จ กรุณาลองใหม่')
+        return
+      }
       setAlert({ kind: 'closed', message: REGISTRATION_CLOSED_MESSAGE })
       return
     }
@@ -180,19 +200,44 @@ export function RegisterPage() {
           <h1>ลงทะเบียนนักกีฬา</h1>
           <p>
             {registrationOpen
-              ? 'รับถึง 19 ก.ย. 2569 เวลา 17:00 น. · วันแข่ง 21 ก.ย. 2569'
-              : 'ปิดรับลงทะเบียนแล้ว · วันแข่ง 21 ก.ย. 2569'}
+              ? 'เปิดรับลงทะเบียนนักกีฬา · วันแข่ง 21 ก.ย. 2569'
+              : 'วันแข่ง 21 ก.ย. 2569'}
           </p>
         </div>
       </div>
 
       {!registrationOpen ? (
         <div className="card reg-closed">
-          <h2>หมดเวลาลงทะเบียน</h2>
-          <p>{REGISTRATION_CLOSED_MESSAGE}</p>
-          <button type="button" className="reg-submit" onClick={() => setPage('home')}>
-            กลับหน้าหลัก
-          </button>
+          <h2>
+            {registrationStatus === 'loading'
+              ? 'กำลังตรวจสอบสถานะ'
+              : registrationStatus === 'error'
+                ? 'ตรวจสอบสถานะไม่ได้'
+                : 'ปิดรับลงทะเบียน'}
+          </h2>
+          <p>
+            {registrationStatus === 'loading'
+              ? 'กรุณารอสักครู่'
+              : registrationStatus === 'error'
+                ? 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ กรุณาลองใหม่'
+                : REGISTRATION_CLOSED_MESSAGE}
+          </p>
+          {registrationStatus === 'error' ? (
+            <button
+              type="button"
+              className="reg-submit"
+              onClick={() => {
+                setRegistrationStatus('loading')
+                setStatusRefresh((n) => n + 1)
+              }}
+            >
+              ลองใหม่
+            </button>
+          ) : registrationStatus === 'closed' ? (
+            <button type="button" className="reg-submit" onClick={() => setPage('home')}>
+              กลับหน้าหลัก
+            </button>
+          ) : null}
         </div>
       ) : (
         <>
