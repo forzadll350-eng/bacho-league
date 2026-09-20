@@ -67,27 +67,27 @@ export function StandingsPage() {
           {isVolleyball ? (
             <div className="knockout-step">
               <span className="knockout-label">นัดชิง</span>
-              <p>{knockoutPair(knockout, 'vb-final', 'ที่ 1 สาย A พบ ที่ 1 สาย B · รอยืนยันทีม')}</p>
+              <p>{knockoutPair(knockout, 'vb-final', 'รอยืนยันคู่แข่งขัน')}</p>
             </div>
           ) : (
             <>
               <div className="knockout-step">
                 <span className="knockout-label">รองฯ</span>
-                <p>{knockoutPair(knockout, 'fb-sf-1', 'A1 พบ B2 · รอยืนยันทีม')} · {knockoutPair(knockout, 'fb-sf-2', 'B1 พบ A2 · รอยืนยันทีม')}</p>
+                <p>{knockoutPair(knockout, 'fb-sf-1', 'คู่ที่ 1 · รอยืนยันทีม')} · {knockoutPair(knockout, 'fb-sf-2', 'คู่ที่ 2 · รอยืนยันทีม')}</p>
               </div>
               <div className="knockout-arrow" aria-hidden>
                 →
               </div>
               <div className="knockout-step">
                 <span className="knockout-label">ชิงอันดับ 3</span>
-                <p>{knockoutPair(knockout, 'fb-third', 'ผู้แพ้รองฯ 1 พบ ผู้แพ้รองฯ 2 · รอยืนยันทีม')}</p>
+                <p>{knockoutPair(knockout, 'fb-third', 'รอยืนยันคู่แข่งขัน')}</p>
               </div>
               <div className="knockout-arrow" aria-hidden>
                 →
               </div>
               <div className="knockout-step">
                 <span className="knockout-label">นัดชิง</span>
-                <p>{knockoutPair(knockout, 'fb-final', 'ผู้ชนะรองฯ พบกัน · รอยืนยันทีม')}</p>
+                <p>{knockoutPair(knockout, 'fb-final', 'รอยืนยันคู่แข่งขัน')}</p>
               </div>
             </>
           )}
@@ -99,7 +99,7 @@ export function StandingsPage() {
             ))}
           </div>
         ) : (
-          <p className="knockout-empty">จะอัปเดตคู่จริงหลังจบสาย + จับฉลาก (ถ้าจำเป็น)</p>
+          <p className="knockout-empty">จะแสดงคู่แข่งขันเมื่อแอดมินยืนยันทีม</p>
         )}
       </div>
     </section>

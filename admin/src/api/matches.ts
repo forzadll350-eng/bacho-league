@@ -146,35 +146,15 @@ export async function fetchGroupStandings(sport: SportType): Promise<GroupStandi
     }))
 }
 
-const KNOCKOUT_GROUP_SIDES: Record<string, readonly ['A' | 'B', 'A' | 'B'] | null> = {
-  'fb-sf-1': ['A', 'B'],
-  'fb-sf-2': ['B', 'A'],
-  'fb-third': null,
-  'fb-final': null,
-  'vb-final': ['A', 'B'],
+const KNOCKOUT_LABELS: Record<string, string> = {
+  'fb-sf-1': 'รอบรองชนะเลิศ 1',
+  'fb-sf-2': 'รอบรองชนะเลิศ 2',
+  'fb-third': 'ชิงอันดับ 3',
+  'fb-final': 'ชิงชนะเลิศ',
+  'vb-final': 'ชิงชนะเลิศ',
 }
 
-/** A draw may be decided by penalties, so admins choose the advancing team. */
-export function eligiblePlayoffTeams(matchId: string, matches: MatchRow[]): Set<string> {
-  const eligible = new Set<string>()
-  if (matchId !== 'fb-final' && matchId !== 'fb-third') return eligible
-  for (const semiId of ['fb-sf-1', 'fb-sf-2']) {
-    const semi = matches.find((row) => row.id === semiId)
-    if (!semi || semi.status !== 'finished') continue
-    if (semi.home_score === semi.away_score) {
-      eligible.add(semi.home_team_id)
-      eligible.add(semi.away_team_id)
-    } else {
-      const homeAdvances = semi.home_score > semi.away_score
-      eligible.add(matchId === 'fb-final'
-        ? (homeAdvances ? semi.home_team_id : semi.away_team_id)
-        : (homeAdvances ? semi.away_team_id : semi.home_team_id))
-    }
-  }
-  return eligible
-}
-
-/** Replace placeholder participants only before kickoff; keep the existing match ID. */
+/** Admins choose knockout participants; played match results remain protected. */
 export async function assignKnockoutTeams(
   matchId: string,
   sport: SportType,
@@ -183,7 +163,7 @@ export async function assignKnockoutTeams(
   expectedUpdatedAt: string,
 ): Promise<void> {
   if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
-  if (!(matchId in KNOCKOUT_GROUP_SIDES)) throw new Error('คู่นี้ไม่ใช่รอบน็อกเอาต์')
+  if (!Object.hasOwn(KNOCKOUT_LABELS, matchId)) throw new Error('คู่นี้ไม่ใช่รอบน็อกเอาต์')
   if (!homeTeamId || !awayTeamId || homeTeamId === awayTeamId) {
     throw new Error('เลือกทีมจริงสองทีมที่ไม่ซ้ำกัน')
   }
@@ -200,55 +180,9 @@ export async function assignKnockoutTeams(
       (target.home_points ?? 0) !== 0 || (target.away_points ?? 0) !== 0) {
     throw new Error('เปลี่ยนทีมได้เฉพาะคู่ที่ยังไม่เริ่มและยังไม่มีคะแนน')
   }
-  const groupMatches = matches.filter((row) => row.stage === 'group' &&
-    (row.group_code === 'A' || row.group_code === 'B'))
-  if (!groupMatches.length || groupMatches.some((row) => row.status !== 'finished')) {
-    throw new Error('ต้องจบรอบแบ่งสายทุกคู่ก่อนจัดทีมรอบน็อกเอาต์')
-  }
-
-  const semis = matches.filter((row) => row.id === 'fb-sf-1' || row.id === 'fb-sf-2')
-  if (matchId === 'fb-final' || matchId === 'fb-third') {
-    if (semis.length !== 2 || semis.some((row) => row.status !== 'finished')) {
-      throw new Error('ต้องจบรอบรองทั้งสองคู่ก่อนเลือกทีมรอบชิง')
-    }
-    const eligible = eligiblePlayoffTeams(matchId, matches)
-    if (!eligible.has(homeTeamId) || !eligible.has(awayTeamId)) {
-      throw new Error('เลือกทีมตามผู้ชนะ/ผู้แพ้รอบรอง ถ้าเสมอให้เลือกตามผลจุดโทษ')
-    }
-    const firstSemi = semis.find((row) => row.id === 'fb-sf-1')!
-    const secondSemi = semis.find((row) => row.id === 'fb-sf-2')!
-    const fromFirst = [firstSemi.home_team_id, firstSemi.away_team_id]
-    const fromSecond = [secondSemi.home_team_id, secondSemi.away_team_id]
-    if (!((fromFirst.includes(homeTeamId) && fromSecond.includes(awayTeamId)) ||
-          (fromSecond.includes(homeTeamId) && fromFirst.includes(awayTeamId)))) {
-      throw new Error('คู่รอบชิงต้องมีทีมจากรอบรองคู่ละหนึ่งทีม')
-    }
-    const otherId = matchId === 'fb-final' ? 'fb-third' : 'fb-final'
-    const other = matches.find((row) => row.id === otherId)
-    if (other && [other.home_team_id, other.away_team_id].some(
-      (id) => !id.startsWith('slot-') && (id === homeTeamId || id === awayTeamId),
-    )) {
-      throw new Error('ทีมนี้ถูกเลือกในอีกคู่รอบชิง/ชิงอันดับ 3 แล้ว')
-    }
-  } else {
-    const requiredGroups = KNOCKOUT_GROUP_SIDES[matchId]
-    if (!requiredGroups ||
-        standings.find((row) => row.team_id === homeTeamId)?.group_code !== requiredGroups[0] ||
-        standings.find((row) => row.team_id === awayTeamId)?.group_code !== requiredGroups[1]) {
-      throw new Error('เลือกทีมให้ตรงสายที่ระบุในผังการแข่งขัน')
-    }
-    if (target.stage === 'semi') {
-      const otherSemi = semis.find((row) => row.id !== matchId)
-      if (otherSemi && [otherSemi.home_team_id, otherSemi.away_team_id].some(
-        (id) => id === homeTeamId || id === awayTeamId,
-      )) {
-        throw new Error('ทีมนี้ถูกเลือกในอีกรอบรองแล้ว')
-      }
-      if (matches.some((row) => (row.id === 'fb-final' || row.id === 'fb-third') &&
-          [row.home_team_id, row.away_team_id].some((id) => !id.startsWith('slot-')))) {
-        throw new Error('จัดทีมรอบชิงแล้ว จึงเปลี่ยนคู่รอบรองไม่ได้')
-      }
-    }
+  const eligible = new Set(standings.map((row) => row.team_id))
+  if (!eligible.has(homeTeamId) || !eligible.has(awayTeamId)) {
+    throw new Error('กรุณาเลือกทีมที่อยู่ในรายการแข่งขันประเภทนี้')
   }
 
   if (sport === 'football') {
@@ -266,6 +200,7 @@ export async function assignKnockoutTeams(
     .update({
       home_team_id: homeTeamId,
       away_team_id: awayTeamId,
+      period_label: KNOCKOUT_LABELS[matchId],
       updated_at: new Date().toISOString(),
     })
     .eq('id', matchId)

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   assignKnockoutTeams,
-  eligiblePlayoffTeams,
   fetchGroupStandings,
   fetchMatches,
   teamName,
@@ -16,19 +15,11 @@ const FIXTURE_IDS: Record<SportType, string[]> = {
 }
 
 const FIXTURE_LABELS: Record<string, string> = {
-  'fb-sf-1': 'รอบรองชนะเลิศ 1 · A1 พบ B2',
-  'fb-sf-2': 'รอบรองชนะเลิศ 2 · B1 พบ A2',
-  'fb-third': 'ชิงอันดับ 3 · ผู้แพ้รอบรอง',
-  'fb-final': 'ชิงชนะเลิศ · ผู้ชนะรอบรอง',
-  'vb-final': 'ชิงชนะเลิศ · A1 พบ B1',
-}
-
-const REQUIRED_GROUPS: Record<string, readonly ['A' | 'B', 'A' | 'B'] | null> = {
-  'fb-sf-1': ['A', 'B'],
-  'fb-sf-2': ['B', 'A'],
-  'fb-third': null,
-  'fb-final': null,
-  'vb-final': ['A', 'B'],
+  'fb-sf-1': 'รอบรองชนะเลิศ 1',
+  'fb-sf-2': 'รอบรองชนะเลิศ 2',
+  'fb-third': 'ชิงอันดับ 3',
+  'fb-final': 'ชิงชนะเลิศ',
+  'vb-final': 'ชิงชนะเลิศ',
 }
 
 type Choice = { home: string; away: string }
@@ -98,22 +89,9 @@ export function TournamentSetupPage({
     match.stage === 'group' && (match.group_code === 'A' || match.group_code === 'B'),
   ), [matches])
   const completedCount = groupMatches.filter((match) => match.status === 'finished').length
-  const groupsComplete = groupMatches.length > 0 && completedCount === groupMatches.length
-  const semis = matches.filter((match) => match.id === 'fb-sf-1' || match.id === 'fb-sf-2')
-  const semisComplete = semis.length === 2 && semis.every((match) => match.status === 'finished')
   const fixtures = FIXTURE_IDS[sport]
     .map((id) => matches.find((match) => match.id === id))
     .filter((match): match is MatchRow => Boolean(match))
-
-  function optionsFor(match: MatchRow, side: 'home' | 'away'): GroupStandingRow[] {
-    const required = REQUIRED_GROUPS[match.id]
-    if (required) {
-      const group = required[side === 'home' ? 0 : 1]
-      return standings.filter((row) => row.group_code === group)
-    }
-    const eligible = eligiblePlayoffTeams(match.id, matches)
-    return standings.filter((row) => eligible.has(row.team_id))
-  }
 
   function setChoice(matchId: string, side: 'home' | 'away', value: string) {
     setChoices((current) => ({
@@ -222,19 +200,16 @@ export function TournamentSetupPage({
           <section className="tournament-fixtures">
             <h3>ยืนยันทีมจริงในรอบน็อกเอาต์</h3>
             <p className="field-hint">
-              ระบบไม่เดาชื่อทีมจากอันดับเมื่อแต้มเท่ากัน · ให้แอดมินเลือกตามผลที่ยืนยัน/จับฉลาก
-              แล้วชื่อและตราทีมจะเปลี่ยนทั้งหน้าคนดูและหน้าแอดมิน
+              แอดมินเลือกทีมจากสายใดก็ได้ ไม่ต้องรอให้รอบก่อนจบ · เมื่อยืนยันแล้ว
+              ชื่อและตราทีมจะเปลี่ยนทั้งหน้าคนดูและหน้าแอดมิน
             </p>
             {fixtures.map((match) => {
-              const needsSemis = match.id === 'fb-final' || match.id === 'fb-third'
-              const unlocked = groupsComplete && (!needsSemis || semisComplete)
-              const editable = unlocked && match.status === 'scheduled' &&
+              const editable = match.status === 'scheduled' &&
                 match.home_score === 0 && match.away_score === 0 &&
                 (match.home_points ?? 0) === 0 && (match.away_points ?? 0) === 0
               const choice = choices[match.id] ?? { home: '', away: '' }
               const unchanged = choice.home === assignedTeam(match.home_team_id) &&
                 choice.away === assignedTeam(match.away_team_id)
-              const groupSides = REQUIRED_GROUPS[match.id]
               return (
                 <div className="tournament-fixture" key={match.id}>
                   <h4>{FIXTURE_LABELS[match.id]}</h4>
@@ -244,26 +219,23 @@ export function TournamentSetupPage({
                   <div className="tournament-pickers">
                     {(['home', 'away'] as const).map((side) => (
                       <label className="field" key={side}>
-                        <span>{side === 'home' ? 'ทีมแรก' : 'ทีมที่สอง'}{groupSides ? ` · สาย ${groupSides[side === 'home' ? 0 : 1]}` : ''}</span>
+                        <span>{side === 'home' ? 'ทีมแรก' : 'ทีมที่สอง'}</span>
                         <select
                           value={choice[side]}
                           onChange={(event) => setChoice(match.id, side, event.target.value)}
                           disabled={!editable || savingId !== null}
                         >
                           <option value="">เลือกทีมจริง</option>
-                          {optionsFor(match, side).map((row) => (
+                          {standings.map((row) => (
                             <option key={row.team_id} value={row.team_id}>
-                              อันดับ {row.rank} · {displayTeam(row)} · {row.points} แต้ม
+                              สาย {row.group_code} · อันดับ {row.rank} · {displayTeam(row)} · {row.points} แต้ม
                             </option>
                           ))}
                         </select>
                       </label>
                     ))}
                   </div>
-                  {!groupsComplete ? <p className="field-hint">รอผลรอบแบ่งสายให้ครบก่อน</p> : null}
-                  {groupsComplete && needsSemis && !semisComplete ? <p className="field-hint">รอรอบรองทั้งสองคู่จบก่อน</p> : null}
-                  {groupsComplete && needsSemis && semisComplete ? <p className="field-hint">ถ้ารอบรองเสมอ ให้เลือกทีมตามผลจุดโทษ</p> : null}
-                  {!editable && unlocked ? <p className="field-hint">คู่นี้เริ่มแข่งหรือมีคะแนนแล้ว จึงล็อกการเปลี่ยนทีม</p> : null}
+                  {!editable ? <p className="field-hint">คู่นี้เริ่มแข่งหรือมีคะแนนแล้ว จึงเปลี่ยนทีมไม่ได้</p> : null}
                   <button
                     type="button"
                     className="btn tournament-confirm"

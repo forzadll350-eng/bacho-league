@@ -28,6 +28,8 @@ function resolveVictory(match: Match): VictoryPayload {
     ? 'นัดชิงชนะเลิศ'
     : match.stage === 'third'
       ? 'ชิงอันดับ 3'
+      : match.stage === 'semi'
+        ? 'รอบรองชนะเลิศ'
       : match.groupCode
         ? `สาย ${match.groupCode}${match.courtLabel ? ` · ${match.courtLabel}` : ''}`
         : match.courtLabel || match.periodLabel || 'การแข่งขัน'
