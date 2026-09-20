@@ -14,6 +14,10 @@ const BURST_MS = 4200
 
 type ScoreSnap = { home: number; away: number }
 
+function scoreIncreased(old: ScoreSnap | undefined, match: Match): boolean {
+  return old != null && match.homeScore + match.awayScore > old.home + old.away
+}
+
 function snapMatches(matches: Match[]): Map<string, ScoreSnap> {
   const map = new Map<string, ScoreSnap>()
   for (const m of matches) {
@@ -34,7 +38,7 @@ function detectBurst(
   for (const m of matches) {
     const old = prev.get(m.id)
     if (!old) continue
-    const scoreUp = m.homeScore + m.awayScore > old.home + old.away
+    const scoreUp = scoreIncreased(old, m)
     // Identifying a previously unknown scorer adds a goal row later, but it is
     // not a new goal and must not replay the celebration.
     if (!scoreUp) continue
@@ -194,7 +198,11 @@ function BurstOverlay({
 
 /** ฟังสกอร์ realtime แล้วฉลองพลุทั้งแอป */
 export function GoalCelebrationHost() {
-  const { data, sport, loading } = useApp()
+  const {
+    data, sport, loading, page,
+    homeGroup, setHomeGroup,
+    fixturesGroup, setFixturesGroup,
+  } = useApp()
   const prevRef = useRef<Map<string, ScoreSnap> | null>(null)
   const armedRef = useRef(false)
   const [burst, setBurst] = useState<GoalBurstPayload | null>(null)
@@ -219,10 +227,30 @@ export function GoalCelebrationHost() {
     // ตอนกำลัง reload อย่าทับ prev — รอข้อมูลชุดใหม่แล้วค่อยเทียบ
     if (loading) return
 
-    const found = detectBurst(prevRef.current, matches, sport)
+    const previous = prevRef.current
+    const found = detectBurst(previous, matches, sport)
+    if (sport === 'football' && previous && (page === 'home' || page === 'fixtures')) {
+      const viewedGroup = page === 'home' ? homeGroup : fixturesGroup
+      if (viewedGroup === 'A' || viewedGroup === 'B') {
+        const otherGroupGoal = matches.find((match) =>
+          match.stage === 'group' &&
+          match.groupCode !== viewedGroup &&
+          (match.groupCode === 'A' || match.groupCode === 'B') &&
+          (match.status === 'live' || match.status === 'halftime') &&
+          scoreIncreased(previous.get(match.id), match),
+        )
+        if (otherGroupGoal?.groupCode) {
+          if (page === 'home') setHomeGroup(otherGroupGoal.groupCode)
+          else setFixturesGroup(otherGroupGoal.groupCode)
+        }
+      }
+    }
     prevRef.current = snapMatches(matches)
     if (found) setBurst(found)
-  }, [data.matches, loading, sport])
+  }, [
+    data.matches, loading, sport, page,
+    homeGroup, setHomeGroup, fixturesGroup, setFixturesGroup,
+  ])
 
   if (!burst) return null
   return <BurstOverlay key={burst.id} burst={burst} onDone={() => setBurst(null)} />

@@ -58,6 +58,8 @@ interface AppContextValue {
   updateText: string
   homeGroup: 'A' | 'B' | 'knockout'
   setHomeGroup: (group: 'A' | 'B' | 'knockout') => void
+  fixturesGroup: 'all' | 'A' | 'B'
+  setFixturesGroup: (group: 'all' | 'A' | 'B') => void
   refresh: () => void
 }
 
@@ -77,6 +79,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notifOpen, setNotifOpen] = useState(false)
   const [updateSeconds, setUpdateSeconds] = useState(0)
   const [homeGroup, setHomeGroup] = useState<'A' | 'B' | 'knockout'>('A')
+  const [fixturesGroup, setFixturesGroup] = useState<'all' | 'A' | 'B'>('all')
   const [reloadToken, setReloadToken] = useState(0)
   const loadedRevisionRef = useRef<{ sport: SportType; revision: string | null } | null>(null)
   const pendingRevisionRef = useRef<{ sport: SportType; revision: string | null } | null>(null)
@@ -264,6 +267,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateText,
       homeGroup,
       setHomeGroup,
+      fixturesGroup,
+      setFixturesGroup,
       refresh,
     }),
     [
@@ -281,6 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       closeNotif,
       updateText,
       homeGroup,
+      fixturesGroup,
       refresh,
     ],
   )

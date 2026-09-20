@@ -1,13 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useApp } from '../context/AppContext'
 import { MatchCard } from '../components/MatchCard'
 import { compareMatchOrder } from '../lib/matchOrder'
 
-type GroupFilter = 'all' | 'A' | 'B'
-
 export function MatchesPage() {
-  const { page, data } = useApp()
-  const [groupTab, setGroupTab] = useState<GroupFilter>('all')
+  const { page, data, fixturesGroup: groupTab, setFixturesGroup: setGroupTab } = useApp()
 
   const filtered = useMemo(() => {
     return data.matches
