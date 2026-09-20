@@ -3,6 +3,7 @@ import {
   assignKnockoutTeams,
   fetchGroupStandings,
   fetchMatches,
+  KNOCKOUT_DEFAULTS,
   teamName,
   type GroupStandingRow,
 } from '../api/matches'
@@ -23,10 +24,6 @@ const FIXTURE_LABELS: Record<string, string> = {
 }
 
 type Choice = { home: string; away: string }
-
-function assignedTeam(id: string): string {
-  return id.startsWith('slot-') ? '' : id
-}
 
 function displayTeam(row: GroupStandingRow): string {
   return row.team?.name_th ?? row.team_id
@@ -62,8 +59,8 @@ export function TournamentSetupPage({
       setChoices(Object.fromEntries(nextMatches.map((match) => [
         match.id,
         {
-          home: assignedTeam(match.home_team_id),
-          away: assignedTeam(match.away_team_id),
+          home: match.home_team_id,
+          away: match.away_team_id,
         },
       ])))
       return true
@@ -102,15 +99,22 @@ export function TournamentSetupPage({
     setNotice(null)
   }
 
-  async function confirmTeams(match: MatchRow) {
-    const choice = choices[match.id]
+  async function confirmTeams(match: MatchRow, selection?: Choice) {
+    const choice = selection ?? choices[match.id]
+    const defaults = KNOCKOUT_DEFAULTS[match.id]
+    if (!defaults) return
     if (!choice?.home || !choice.away) {
       setError('กรุณาเลือกทีมทั้งสองฝั่ง')
       return
     }
-    const homeLabel = standings.find((row) => row.team_id === choice.home)?.team?.name_th ?? choice.home
-    const awayLabel = standings.find((row) => row.team_id === choice.away)?.team?.name_th ?? choice.away
-    if (!window.confirm(`ยืนยัน ${FIXTURE_LABELS[match.id]}\n${homeLabel} พบ ${awayLabel}\nชื่อทีมจะเปลี่ยนในหน้าคนดูทันที`)) return
+    const restoring = choice.home === defaults.home.id && choice.away === defaults.away.id
+    const homeLabel = choice.home === defaults.home.id
+      ? defaults.home.label
+      : standings.find((row) => row.team_id === choice.home)?.team?.name_th ?? choice.home
+    const awayLabel = choice.away === defaults.away.id
+      ? defaults.away.label
+      : standings.find((row) => row.team_id === choice.away)?.team?.name_th ?? choice.away
+    if (!window.confirm(`${restoring ? 'คืน' : 'ยืนยัน'} ${FIXTURE_LABELS[match.id]}\n${homeLabel} พบ ${awayLabel}\nชื่อทีมจะเปลี่ยนในหน้าคนดูทันที`)) return
     setSavingId(match.id)
     setError(null)
     setNotice(null)
@@ -118,7 +122,7 @@ export function TournamentSetupPage({
       await assignKnockoutTeams(match.id, sport, choice.home, choice.away, match.updated_at)
       setLoading(true)
       if (await load()) {
-        setNotice(`จัดคู่ ${homeLabel} พบ ${awayLabel} แล้ว · หน้าคนดูอัปเดตตาม`)
+        setNotice(`${restoring ? 'คืนช่องรอผล' : 'จัดคู่'} ${homeLabel} พบ ${awayLabel} แล้ว · หน้าคนดูอัปเดตตาม`)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'จัดคู่แข่งขันไม่สำเร็จ')
@@ -200,16 +204,19 @@ export function TournamentSetupPage({
           <section className="tournament-fixtures">
             <h3>ยืนยันทีมจริงในรอบน็อกเอาต์</h3>
             <p className="field-hint">
-              แอดมินเลือกทีมจากสายใดก็ได้ ไม่ต้องรอให้รอบก่อนจบ · เมื่อยืนยันแล้ว
+              แอดมินเลือกทีมจากสายใดก็ได้ หรือคืนเป็นช่องรออันดับเดิมได้ก่อนเริ่มแข่ง · เมื่อยืนยันแล้ว
               ชื่อและตราทีมจะเปลี่ยนทั้งหน้าคนดูและหน้าแอดมิน
             </p>
             {fixtures.map((match) => {
+              const defaults = KNOCKOUT_DEFAULTS[match.id]
+              if (!defaults) return null
               const editable = match.status === 'scheduled' &&
                 match.home_score === 0 && match.away_score === 0 &&
                 (match.home_points ?? 0) === 0 && (match.away_points ?? 0) === 0
-              const choice = choices[match.id] ?? { home: '', away: '' }
-              const unchanged = choice.home === assignedTeam(match.home_team_id) &&
-                choice.away === assignedTeam(match.away_team_id)
+              const choice = choices[match.id] ?? { home: match.home_team_id, away: match.away_team_id }
+              const unchanged = choice.home === match.home_team_id && choice.away === match.away_team_id
+              const alreadyDefault = match.home_team_id === defaults.home.id &&
+                match.away_team_id === defaults.away.id
               return (
                 <div className="tournament-fixture" key={match.id}>
                   <h4>{FIXTURE_LABELS[match.id]}</h4>
@@ -225,7 +232,8 @@ export function TournamentSetupPage({
                           onChange={(event) => setChoice(match.id, side, event.target.value)}
                           disabled={!editable || savingId !== null}
                         >
-                          <option value="">เลือกทีมจริง</option>
+                          <option value="">เลือกทีม</option>
+                          <option value={defaults[side].id}>รอผล: {defaults[side].label}</option>
                           {standings.map((row) => (
                             <option key={row.team_id} value={row.team_id}>
                               สาย {row.group_code} · อันดับ {row.rank} · {displayTeam(row)} · {row.points} แต้ม
@@ -236,14 +244,24 @@ export function TournamentSetupPage({
                     ))}
                   </div>
                   {!editable ? <p className="field-hint">คู่นี้เริ่มแข่งหรือมีคะแนนแล้ว จึงเปลี่ยนทีมไม่ได้</p> : null}
-                  <button
-                    type="button"
-                    className="btn tournament-confirm"
-                    onClick={() => void confirmTeams(match)}
-                    disabled={!editable || savingId !== null || !choice.home || !choice.away || choice.home === choice.away || unchanged}
-                  >
-                    {savingId === match.id ? 'กำลังยืนยัน…' : 'ยืนยันคู่แข่งขัน'}
-                  </button>
+                  <div className="tournament-actions">
+                    <button
+                      type="button"
+                      className="btn tournament-confirm"
+                      onClick={() => void confirmTeams(match)}
+                      disabled={!editable || savingId !== null || !choice.home || !choice.away || choice.home === choice.away || unchanged}
+                    >
+                      {savingId === match.id ? 'กำลังบันทึก…' : 'บันทึกคู่แข่งขัน'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() => void confirmTeams(match, { home: defaults.home.id, away: defaults.away.id })}
+                      disabled={!editable || savingId !== null || alreadyDefault}
+                    >
+                      คืนเป็นช่องรอผล
+                    </button>
+                  </div>
                 </div>
               )
             })}

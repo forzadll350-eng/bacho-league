@@ -757,7 +757,7 @@ button {
 .tournament-pickers .field { min-width: 0; }
 .tournament-pickers .field > span { color: var(--muted); font-size: 0.76rem; }
 .tournament-pickers select { width: 100%; }
-.tournament-confirm { margin-top: 3px; }
+.tournament-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
 .point-editor-title {
   display: flex;

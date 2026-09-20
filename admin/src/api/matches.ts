@@ -154,6 +154,40 @@ const KNOCKOUT_LABELS: Record<string, string> = {
   'vb-final': 'ชิงชนะเลิศ',
 }
 
+type KnockoutSlot = { id: string; label: string }
+
+export const KNOCKOUT_DEFAULTS: Record<string, {
+  home: KnockoutSlot
+  away: KnockoutSlot
+  periodLabel: string
+}> = {
+  'fb-sf-1': {
+    home: { id: 'slot-a1', label: 'ที่ 1 สาย A' },
+    away: { id: 'slot-b2', label: 'ที่ 2 สาย B' },
+    periodLabel: 'รองชนะเลิศ 1 · A1 พบ B2',
+  },
+  'fb-sf-2': {
+    home: { id: 'slot-b1', label: 'ที่ 1 สาย B' },
+    away: { id: 'slot-a2', label: 'ที่ 2 สาย A' },
+    periodLabel: 'รองชนะเลิศ 2 · B1 พบ A2',
+  },
+  'fb-third': {
+    home: { id: 'slot-sf1-loser', label: 'ผู้แพ้รองฯ 1' },
+    away: { id: 'slot-sf2-loser', label: 'ผู้แพ้รองฯ 2' },
+    periodLabel: 'ชิงอันดับ 3 · ผู้แพ้รองฯ พบกัน',
+  },
+  'fb-final': {
+    home: { id: 'slot-sf1', label: 'ผู้ชนะรองฯ 1' },
+    away: { id: 'slot-sf2', label: 'ผู้ชนะรองฯ 2' },
+    periodLabel: 'ชิงชนะเลิศ · ผู้ชนะรองฯ พบกัน',
+  },
+  'vb-final': {
+    home: { id: 'slot-a1', label: 'ที่ 1 สาย A' },
+    away: { id: 'slot-b1', label: 'ที่ 1 สาย B' },
+    periodLabel: 'ชิงชนะเลิศ · ที่ 1 สาย A พบ ที่ 1 สาย B',
+  },
+}
+
 /** Admins choose knockout participants; played match results remain protected. */
 export async function assignKnockoutTeams(
   matchId: string,
@@ -163,9 +197,12 @@ export async function assignKnockoutTeams(
   expectedUpdatedAt: string,
 ): Promise<void> {
   if (!supabase) throw new Error('ยังไม่ได้ตั้งค่า Supabase')
-  if (!Object.hasOwn(KNOCKOUT_LABELS, matchId)) throw new Error('คู่นี้ไม่ใช่รอบน็อกเอาต์')
+  const defaults = KNOCKOUT_DEFAULTS[matchId]
+  if (!Object.hasOwn(KNOCKOUT_DEFAULTS, matchId) || !defaults) {
+    throw new Error('คู่นี้ไม่ใช่รอบน็อกเอาต์')
+  }
   if (!homeTeamId || !awayTeamId || homeTeamId === awayTeamId) {
-    throw new Error('เลือกทีมจริงสองทีมที่ไม่ซ้ำกัน')
+    throw new Error('เลือกทีมทั้งสองฝั่งที่ไม่ซ้ำกัน')
   }
 
   const [matches, standings] = await Promise.all([
@@ -181,8 +218,9 @@ export async function assignKnockoutTeams(
     throw new Error('เปลี่ยนทีมได้เฉพาะคู่ที่ยังไม่เริ่มและยังไม่มีคะแนน')
   }
   const eligible = new Set(standings.map((row) => row.team_id))
-  if (!eligible.has(homeTeamId) || !eligible.has(awayTeamId)) {
-    throw new Error('กรุณาเลือกทีมที่อยู่ในรายการแข่งขันประเภทนี้')
+  if ((!eligible.has(homeTeamId) && homeTeamId !== defaults.home.id) ||
+      (!eligible.has(awayTeamId) && awayTeamId !== defaults.away.id)) {
+    throw new Error('เลือกทีมในรายการหรือช่องรอผลเดิมของคู่นี้')
   }
 
   if (sport === 'football') {
@@ -200,7 +238,9 @@ export async function assignKnockoutTeams(
     .update({
       home_team_id: homeTeamId,
       away_team_id: awayTeamId,
-      period_label: KNOCKOUT_LABELS[matchId],
+      period_label: homeTeamId === defaults.home.id && awayTeamId === defaults.away.id
+        ? defaults.periodLabel
+        : KNOCKOUT_LABELS[matchId],
       updated_at: new Date().toISOString(),
     })
     .eq('id', matchId)
