@@ -71,6 +71,8 @@ export interface Match {
   homeTeam: Team
   awayTeam: Team
   scheduledAt: string
+  /** Last database update; used to recover missed live-score events. */
+  updatedAt?: string
   /** Actual kickoff, stamped when status first changes to live */
   startedAt?: string
   endsAt?: string

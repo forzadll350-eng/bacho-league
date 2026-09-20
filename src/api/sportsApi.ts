@@ -31,6 +31,7 @@ type DbMatch = {
   home_team_id: string
   away_team_id: string
   scheduled_at: string
+  updated_at: string
   started_at: string | null
   ends_at: string | null
   venue: string | null
@@ -217,6 +218,7 @@ function mapMatch(
     homeTeam: teamById(teams, homeId),
     awayTeam: teamById(teams, awayId),
     scheduledAt: row.scheduled_at,
+    updatedAt: row.updated_at,
     startedAt: row.started_at ?? undefined,
     endsAt: row.ends_at ?? undefined,
     venue: row.venue ?? undefined,
@@ -598,12 +600,26 @@ export async function loadSportBundle(sport: SportType): Promise<SportBundle> {
   return fetchFromSupabase(sport)
 }
 
+/** One lightweight query lets the viewer detect a missed Realtime score update. */
+export async function loadLatestMatchRevision(sport: SportType): Promise<string | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('matches')
+    .select('updated_at')
+    .eq('sport', sport)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  return data?.[0]?.updated_at ?? null
+}
+
 export function subscribeSportUpdates(
   sport: SportType,
   onChange: () => void,
 ): (() => void) | null {
   if (!supabase) return null
 
+  let subscribedOnce = false
   const channel = supabase
     .channel(`sport-${sport}`)
     .on(
@@ -629,7 +645,11 @@ export function subscribeSportUpdates(
       { event: '*', schema: 'public', table: 'favorite_votes', filter: `sport=eq.${sport}` },
       () => onChange(),
     )
-    .subscribe()
+    .subscribe((status) => {
+      // A recovered socket can have missed updates while it was disconnected.
+      if (status === 'SUBSCRIBED' && subscribedOnce) onChange()
+      if (status === 'SUBSCRIBED') subscribedOnce = true
+    })
 
   return () => {
     void supabase!.removeChannel(channel)
