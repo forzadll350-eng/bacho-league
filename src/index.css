@@ -3352,6 +3352,147 @@ body {
   color: var(--invert-ink);
 }
 
+.vote-ranking {
+  margin-bottom: 24px;
+}
+
+.vote-ranking-head {
+  margin: 0 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.vote-ranking-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
+}
+
+.vote-ranking-head h2,
+.vote-ranking-head p {
+  margin: 0;
+}
+
+.vote-ranking-head h2 {
+  font-size: 15px;
+}
+
+.vote-ranking-head p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.vote-ranking-list {
+  display: grid;
+  gap: 7px;
+}
+
+.vote-rank-row {
+  min-width: 0;
+  padding: 9px 11px;
+  display: grid;
+  grid-template-columns: 30px 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.vote-rank-row.top-1 {
+  border-color: color-mix(in srgb, var(--amber) 40%, transparent);
+  background: linear-gradient(110deg, color-mix(in srgb, var(--amber) 10%, var(--panel2)), var(--panel2) 48%);
+}
+
+.vote-rank-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.vote-rank-row.top-1 .vote-rank-number,
+.vote-rank-row.top-2 .vote-rank-number,
+.vote-rank-row.top-3 .vote-rank-number {
+  color: var(--ink);
+}
+
+.vote-rank-row.top-1 .vote-rank-number {
+  background: var(--amber);
+  color: #171006;
+}
+
+.vote-rank-photo {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  object-fit: cover;
+}
+
+.vote-rank-photo.placeholder {
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.vote-rank-meta {
+  min-width: 0;
+}
+
+.vote-rank-meta b,
+.vote-rank-meta p {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vote-rank-meta b {
+  font-size: 12px;
+}
+
+.vote-rank-meta p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.vote-rank-score {
+  min-width: 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.vote-rank-score span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.vote-ranking-empty {
+  padding: 16px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 11px;
+}
+
 .vote-groups {
   display: grid;
   gap: 22px;

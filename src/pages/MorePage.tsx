@@ -41,7 +41,7 @@ export function MorePage() {
       <button type="button" className="card menu-cta" onClick={() => setPage('vote')}>
         <div>
           <div className="menu-title">โหวตนักกีฬาขวัญใจ อำเภอบาเจาะ</div>
-          <div className="menu-sub">ฟุตซอล · โหวตได้ 1 คน</div>
+          <div className="menu-sub">ฟุตซอลและวอลเลย์บอล · เลือกได้ 1 คนต่อกีฬา</div>
         </div>
         <div className="chev">›</div>
       </button>

@@ -100,6 +100,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const fromHash = window.location.hash.replace(/^#/, '')
     const raw = (fromQuery || fromHash || '').trim().toLowerCase()
     const kind = (params.get('kind') || params.get('mode') || '').trim().toLowerCase()
+    const requestedSport = (params.get('sport') || '').trim().toLowerCase()
+    if (requestedSport === 'football' || requestedSport === 'volleyball') {
+      setSportState(requestedSport)
+    }
     if (
       raw === 'attendee' ||
       raw === 'participant' ||
@@ -118,6 +122,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       kind === 'roster'
     ) {
       setPageState('players')
+    } else if (
+      raw === 'vote' ||
+      raw === 'favorite' ||
+      raw === 'ขวัญใจ' ||
+      kind === 'vote' ||
+      kind === 'favorite'
+    ) {
+      setPageState('vote')
     } else if (
       raw === 'evaluation' ||
       raw === 'survey' ||

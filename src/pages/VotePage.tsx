@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Trophy } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { castFavoriteVote, hasVotedLocally } from '../api/voteApi'
 import { TEAM_LIST } from '../data/teams'
@@ -16,6 +17,8 @@ type CandidateGroup = {
   candidates: VoteCandidate[]
 }
 
+type RankedCandidate = VoteCandidate & { rank: number }
+
 export function VotePage() {
   const { page, setPage, data, sport, setSport, refresh } = useApp()
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -25,6 +28,18 @@ export function VotePage() {
     volleyball: hasVotedLocally('volleyball'),
   }))
   const voted = votedBySport[sport]
+
+  const ranking = useMemo<RankedCandidate[]>(() => {
+    const candidates = data.voteCandidates
+      .filter((candidate) => candidate.votes > 0)
+      .sort((left, right) => (
+        right.votes - left.votes || left.fullName.localeCompare(right.fullName, 'th')
+      ))
+    return candidates.map((candidate) => ({
+      ...candidate,
+      rank: candidates.findIndex((entry) => entry.votes === candidate.votes) + 1,
+    }))
+  }, [data.voteCandidates])
 
   const groups = useMemo<CandidateGroup[]>(() => {
     const byTeam = new Map<string, VoteCandidate[]>()
@@ -102,6 +117,48 @@ export function VotePage() {
           </button>
         ))}
       </div>
+
+      <section className="vote-ranking" aria-labelledby="vote-ranking-title">
+        <div className="vote-ranking-head">
+          <span className="vote-ranking-icon"><Trophy size={17} /></span>
+          <div>
+            <h2 id="vote-ranking-title">อันดับคะแนนโหวต</h2>
+            <p>{sport === 'football' ? 'ฟุตซอล' : 'วอลเลย์บอล'} · อัปเดตตามคะแนนล่าสุด</p>
+          </div>
+        </div>
+
+        {ranking.length ? (
+          <div className="vote-ranking-list">
+            {ranking.map((candidate) => (
+              <div
+                className={`card vote-rank-row${candidate.rank <= 3 ? ` top-${candidate.rank}` : ''}`}
+                key={`rank-${candidate.id}`}
+              >
+                <span className="vote-rank-number">{candidate.rank}</span>
+                {candidate.photoUrl ? (
+                  <img src={candidate.photoUrl} alt="" className="vote-rank-photo" />
+                ) : (
+                  <span className="vote-rank-photo placeholder">
+                    {candidate.jerseyNumber ? `#${candidate.jerseyNumber}` : '?'}
+                  </span>
+                )}
+                <div className="vote-rank-meta">
+                  <b>{candidate.fullName}</b>
+                  <p>
+                    {candidate.teamName}
+                    {candidate.jerseyNumber ? ` · เบอร์ ${candidate.jerseyNumber}` : ''}
+                  </p>
+                </div>
+                <strong className="vote-rank-score">
+                  {candidate.votes}<span>โหวต</span>
+                </strong>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="card vote-ranking-empty">ยังไม่มีผู้ได้รับคะแนนโหวต</div>
+        )}
+      </section>
 
       {data.voteCandidates.length === 0 ? (
         <div className="card" style={{ padding: 16, fontSize: 13, color: 'var(--muted)' }}>
