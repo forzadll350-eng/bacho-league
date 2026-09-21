@@ -262,6 +262,35 @@ export type PublicRosterPlayer = {
   jerseyNumber?: string
 }
 
+export type PublicRegistrationRosterEntry = {
+  id: string
+  category: 'attendee' | SportType
+  teamId: string
+  fullName: string
+  positionLabel: string
+  jerseyNumber?: string
+}
+
+export async function loadPublicRegistrationRoster(): Promise<PublicRegistrationRosterEntry[]> {
+  const response = await fetch('/api/public-registration-roster', {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  })
+  let result: {
+    ok?: boolean
+    entries?: PublicRegistrationRosterEntry[]
+  }
+  try {
+    result = await response.json() as typeof result
+  } catch {
+    throw new Error('โหลดรายชื่อผู้ลงทะเบียนไม่สำเร็จ กรุณาลองใหม่')
+  }
+  if (!response.ok || result.ok !== true || !Array.isArray(result.entries)) {
+    throw new Error('โหลดรายชื่อผู้ลงทะเบียนไม่สำเร็จ กรุณาลองใหม่')
+  }
+  return result.entries
+}
+
 export async function loadPublicPlayerRoster(sport: SportType): Promise<PublicRosterPlayer[]> {
   if (!isSupabaseConfigured || !supabase) return []
 

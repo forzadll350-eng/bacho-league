@@ -2824,6 +2824,93 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+.roster-team > header > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.roster-team-total {
+  margin-left: auto;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--chip);
+  font-size: 14px;
+}
+
+.roster-category-counts {
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.roster-category-counts span {
+  min-width: 0;
+  padding: 8px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 9px;
+  background: var(--panel2);
+  color: var(--muted);
+  text-align: center;
+  font-size: 8px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.roster-category-counts b {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.roster-open-button {
+  width: calc(100% - 24px);
+  min-height: 38px;
+  margin: 10px 12px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.roster-open-button:active {
+  transform: translateY(1px);
+}
+
+.roster-category + .roster-category {
+  border-top: 1px solid var(--line);
+}
+
+.roster-category h3 {
+  margin: 0;
+  padding: 10px 13px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.roster-category h3 svg {
+  color: var(--green);
+}
+
+.roster-category h3 span {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 500;
+}
+
 .roster-team > header img {
   width: 42px;
   height: 42px;

@@ -32,8 +32,8 @@ export function MorePage() {
 
       <button type="button" className="card menu-cta" onClick={() => setPage('players')}>
         <div>
-          <div className="menu-title">เช็ครายชื่อนักกีฬา</div>
-          <div className="menu-sub">เลือกประเภทกีฬาและ อปท. · แสดงเฉพาะผู้ที่ยินยอม</div>
+          <div className="menu-title">ตรวจสอบผู้ลงทะเบียน</div>
+          <div className="menu-sub">แยกผู้เข้าร่วม ฟุตซอล และวอลเลย์ตาม อปท.</div>
         </div>
         <div className="chev">›</div>
       </button>
