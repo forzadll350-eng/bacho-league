@@ -26,7 +26,7 @@ export function LoginPage() {
     <div className="login-wrap">
       <form className="login-card" onSubmit={onSubmit}>
         <h1>แอดมิน · ฟุตซอลลีก</h1>
-        <p>เข้าด้วยไอดี lubo1–lubo8 หรืออีเมลผู้ดูแลที่ได้รับอนุญาต · เข้าซ้อนเครื่องไม่ได้</p>
+        <p>เข้าด้วยไอดี lubo1–lubo8, alif1–alif8 หรืออีเมลผู้ดูแลที่ได้รับอนุญาต · เข้าซ้อนเครื่องไม่ได้</p>
 
         {!configured && (
           <p className="error" style={{ marginBottom: 12, padding: 0, textAlign: 'left' }}>
@@ -44,7 +44,7 @@ export function LoginPage() {
             onChange={(e) => setLogin(e.target.value)}
             required
             disabled={!configured || busy}
-            placeholder="เช่น lubo1"
+            placeholder="เช่น lubo1 หรือ alif1"
             inputMode="text"
           />
         </div>

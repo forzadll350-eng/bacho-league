@@ -25,8 +25,8 @@ cp .env.example .env   # ใส่ anon key
 npm run dev            # http://localhost:5174/
 ```
 
-สิทธิ์แอดมินถูกบังคับทั้งหน้าเว็บและ RLS: `lubo1–lubo8@bacholeague.app` และ
-`nitikornluboksawo@gmail.com` เท่านั้น
+สิทธิ์แอดมินถูกบังคับทั้งหน้าเว็บและ RLS: `lubo1–lubo8@bacholeague.app`,
+`alif1–alif8@bacholeague.app` และ `nitikornluboksawo@gmail.com` เท่านั้น
 
 ## เชื่อม Supabase
 

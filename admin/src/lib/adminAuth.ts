@@ -2,7 +2,9 @@
 export const ADMIN_EMAIL_DOMAIN = 'bacholeague.app'
 
 const ADMIN_EMAILS = new Set([
-  ...Array.from({ length: 8 }, (_, index) => `lubo${index + 1}@${ADMIN_EMAIL_DOMAIN}`),
+  ...['lubo', 'alif'].flatMap((prefix) =>
+    Array.from({ length: 8 }, (_, index) => `${prefix}${index + 1}@${ADMIN_EMAIL_DOMAIN}`),
+  ),
   'nitikornluboksawo@gmail.com',
 ])
 
