@@ -414,7 +414,13 @@ function buildTopScorers(matches: Match[]): TopScorer[] {
       }
     }
   }
-  return [...map.values()].sort((a, b) => b.goals - a.goals || a.jerseyNumber.localeCompare(b.jerseyNumber))
+  const thaiNumeric = new Intl.Collator('th', { numeric: true, sensitivity: 'base' })
+  return [...map.values()].sort(
+    (a, b) =>
+      b.goals - a.goals ||
+      thaiNumeric.compare(a.teamName, b.teamName) ||
+      thaiNumeric.compare(a.jerseyNumber, b.jerseyNumber),
+  )
 }
 
 function mergeBundle(

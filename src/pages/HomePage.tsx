@@ -159,7 +159,12 @@ export function HomePage() {
         : data.table.filter((row) => row.groupCode === activeView),
     [activeView, data.table],
   )
-  const topScorer = data.topScorers[0]
+  const rankedTopScorers = useMemo(() => {
+    return data.topScorers.map((scorer) => ({
+      scorer,
+      rank: data.topScorers.findIndex((candidate) => candidate.goals === scorer.goals) + 1,
+    }))
+  }, [data.topScorers])
   const knockoutTabLabel = sport === 'football' ? 'รอบน็อคเอาต์' : 'รอบชิง'
   const matchSectionTitle =
     activeView === 'knockout'
@@ -243,21 +248,33 @@ export function HomePage() {
             <h2>ดาวซัลโว</h2>
           </div>
           <div className="card top-scorer-card">
-            {topScorer ? (
-              <div className="top-scorer-row">
-                {topScorer.photoUrl ? (
-                  <img src={topScorer.photoUrl} alt="" className="top-scorer-photo" />
-                ) : (
-                  <div className="top-scorer-badge">#{topScorer.jerseyNumber}</div>
-                )}
-                <div>
-                  <b>
-                    {topScorer.playerName ?? `เบอร์ ${topScorer.jerseyNumber}`}
-                  </b>
-                  <p>
-                    {topScorer.teamName} · {topScorer.goals} ประตู
-                  </p>
-                </div>
+            {rankedTopScorers.length > 0 ? (
+              <div className="top-scorer-list">
+                {rankedTopScorers.map(({ scorer, rank }) => (
+                  <div
+                    className={`top-scorer-row${rank === 1 ? ' is-leader' : ''}`}
+                    key={scorer.key}
+                  >
+                    <div className="top-scorer-rank" aria-label={`อันดับ ${rank}`}>
+                      {rank}
+                    </div>
+                    {scorer.photoUrl ? (
+                      <img src={scorer.photoUrl} alt="" className="top-scorer-photo" />
+                    ) : (
+                      <div className="top-scorer-badge">#{scorer.jerseyNumber}</div>
+                    )}
+                    <div className="top-scorer-info">
+                      <b>{scorer.playerName ?? `เบอร์ ${scorer.jerseyNumber}`}</b>
+                      <p>
+                        {scorer.teamName} · เบอร์ {scorer.jerseyNumber}
+                      </p>
+                    </div>
+                    <div className="top-scorer-goals">
+                      <strong>{scorer.goals}</strong>
+                      <span>ประตู</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="lt-empty">ยังไม่มีผู้ยิง</p>

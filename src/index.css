@@ -3289,20 +3289,50 @@ body {
 }
 
 .top-scorer-card {
-  padding: 14px;
+  padding: 6px 14px;
+}
+
+.top-scorer-list {
+  display: grid;
 }
 
 .top-scorer-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 28px 46px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.top-scorer-row:last-child {
+  border-bottom: 0;
+}
+
+.top-scorer-rank {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.top-scorer-row.is-leader .top-scorer-rank {
+  border-color: rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
 }
 
 .top-scorer-photo,
 .top-scorer-badge {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -3315,10 +3345,39 @@ body {
   font-size: 14px;
 }
 
+.top-scorer-info {
+  min-width: 0;
+}
+
+.top-scorer-info b {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .top-scorer-row p {
   margin: 2px 0 0;
   font-size: 12px;
   color: var(--muted);
+}
+
+.top-scorer-goals {
+  display: grid;
+  min-width: 42px;
+  justify-items: end;
+  line-height: 1;
+}
+
+.top-scorer-goals strong {
+  font-size: 20px;
+}
+
+.top-scorer-goals span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .vote-cta {
